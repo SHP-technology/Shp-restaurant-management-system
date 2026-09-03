@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SignupPage } from '../features/auth/SignupPage'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
+import { LandingPage } from '../pages/LandingPage'
 import { useAuthStore } from '../store/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to="/admin" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>
   )
