@@ -6,7 +6,7 @@ import { useAuthStore } from '../../store/authStore'
 import { AuthLayout } from './AuthLayout'
 
 const schema = z.object({
-  email: z.string().email('Invalid email'),
+  email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
@@ -18,7 +18,7 @@ export function LoginPage() {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: 'admin@restaurant.com', password: 'password123' },
   })
 
   const onSubmit = (values: LoginFormValues) => {
@@ -37,48 +37,55 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout eyebrow="Welcome back" title="Sign in to your workspace" description="Your service is waiting. Pick up where you left off.">
-
+    <AuthLayout
+      eyebrow="Welcome back"
+      title="Sign in to your workspace"
+      description="Your service is waiting. Pick up right where you left off."
+    >
       <form className="auth-form" onSubmit={form.handleSubmit(onSubmit)}>
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Email</label>
-            <input
-              type="email"
-              className="auth-input"
-              placeholder="admin@restaurant.com"
-              {...form.register('email')}
-            />
-            {form.formState.errors.email && (
-              <p className="mt-2 text-sm text-rose-400">{form.formState.errors.email.message}</p>
-            )}
-          </div>
+        <div>
+          <label className="auth-label">Email</label>
+          <input
+            type="email"
+            className="auth-input"
+            placeholder="admin@restaurant.com"
+            {...form.register('email')}
+          />
+          {form.formState.errors.email && (
+            <p className="mt-2 text-xs font-semibold text-rose-500">
+              {form.formState.errors.email.message}
+            </p>
+          )}
+        </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="••••••••"
-              {...form.register('password')}
-            />
-            {form.formState.errors.password && (
-              <p className="mt-2 text-sm text-rose-400">{form.formState.errors.password.message}</p>
-            )}
-          </div>
+        <div>
+          <label className="auth-label">Password</label>
+          <input
+            type="password"
+            className="auth-input"
+            placeholder="••••••••"
+            {...form.register('password')}
+          />
+          {form.formState.errors.password && (
+            <p className="mt-2 text-xs font-semibold text-rose-500">
+              {form.formState.errors.password.message}
+            </p>
+          )}
+        </div>
 
-          <button
-            type="submit"
-            className="auth-submit"
-          >
-            Sign in
-          </button>
+        <button
+          type="submit"
+          className="auth-submit"
+        >
+          Sign In
+        </button>
       </form>
 
       <p className="auth-switch">
-          New to Restaurant OS?{' '}
-          <Link className="auth-link" to="/signup">
-            Create an account
-          </Link>
+        New to Restaurant OS?{' '}
+        <Link className="auth-link" to="/signup">
+          Create an account
+        </Link>
       </p>
     </AuthLayout>
   )

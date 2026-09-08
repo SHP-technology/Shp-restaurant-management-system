@@ -5,709 +5,517 @@ import {
   ShoppingBag,
   Truck,
   UsersRound,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  ArrowRight,
+  Menu as MenuIcon,
+  X as CloseIcon,
+  Percent,
+  CreditCard,
+  Building2,
+  Smile,
+  Search,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 const fallbackData = {
   restaurant: {
-    name: "SHP",
-    tagline: "Good Food Great Moments",
+    name: 'SHP',
+    tagline: 'Good Food Great Moments',
     description:
-      "Delicious food, year after year — dine-in, delivery or celebration, we’ve got you covered.",
+      'Delicious food, your way — dine in, delivery or celebration, we’ve got you covered.',
     heroImage:
-      "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1600&q=85",
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80',
   },
 
   categories: [
     {
       id: 1,
-      name: "Pizza",
+      name: 'Pizza',
       image:
-        "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=500&q=80",
+        'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=500&q=80',
     },
     {
       id: 2,
-      name: "Burgers",
+      name: 'Burgers',
       image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80",
+        'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80',
     },
     {
       id: 3,
-      name: "Chinese",
+      name: 'Chinese',
       image:
-        "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=500&q=80",
+        'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=500&q=80',
     },
     {
       id: 4,
-      name: "Beverages",
+      name: 'Beverages',
       image:
-        "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=500&q=80",
+        'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=500&q=80',
     },
     {
       id: 5,
-      name: "Desserts",
+      name: 'Desserts',
       image:
-        "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=500&q=80",
+        'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=500&q=80',
     },
   ],
 
-  menu: [
-    {
-      id: 1,
-      name: "Margherita Pizza",
-      price: 249,
-      category: "Pizza",
-      image:
-        "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 2,
-      name: "Veg Loaded Burger",
-      price: 199,
-      category: "Burgers",
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 3,
-      name: "Paneer Chinese",
-      price: 299,
-      category: "Chinese",
-      image:
-        "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 4,
-      name: "Paneer Pizza",
-      price: 349,
-      category: "Pizza",
-      image:
-        "https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 5,
-      name: "Veg Biryani",
-      price: 249,
-      category: "Chinese",
-      image:
-        "https://images.unsplash.com/photo-1563379091339-03246963d51a?auto=format&fit=crop&w=500&q=80",
-    },
+  menuPreview: [
+    { name: 'Margherita Pizza', price: 249, image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=150&q=80' },
+    { name: 'Veg Loaded Burger', price: 199, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=150&q=80' },
+    { name: 'Paneer Chinese', price: 299, image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=150&q=80' },
+    { name: 'Paneer Pizza', price: 349, image: 'https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=150&q=80' },
+    { name: 'Veg Biryani', price: 249, image: 'https://images.unsplash.com/photo-1563379091339-03246963d51a?auto=format&fit=crop&w=150&q=80' },
   ],
-};
+}
 
 const services = [
   {
     icon: CalendarDays,
-    title: "Table Booking",
-    description: "Reserve your table",
-    action: "in advance",
-    link: "/booking",
+    title: 'Table Booking',
+    description: 'Reserve your table',
+    action: 'in advance',
+    link: '/booking',
   },
   {
     icon: Truck,
-    title: "Home Delivery",
-    description: "Fresh & hot food",
-    action: "delivered",
-    link: "/delivery",
+    title: 'Home Delivery',
+    description: 'Hot & fresh food',
+    action: 'delivered',
+    link: '/delivery',
   },
   {
     icon: UsersRound,
-    title: "Party / Celebration",
-    description: "Celebrate with us",
-    action: "your moments",
-    link: "/party-booking",
+    title: 'Party / Celebration',
+    description: 'Celebrate your special',
+    action: 'days with us',
+    link: '/party-booking',
   },
   {
     icon: MapPin,
-    title: "Order Tracking",
-    description: "Track your order",
-    action: "in real-time",
-    link: "/orders",
+    title: 'Order Tracking',
+    description: 'Track your order',
+    action: 'in real-time',
+    link: '/delivery',
   },
-];
+]
 
 export function LandingPage() {
-  const [data, setData] = useState(fallbackData);
-
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const response = await fetch(
-          `${API_URL}/restaurant/home`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch homepage data");
-        }
-
-        const result = await response.json();
-
-        setData({
-          restaurant:
-            result.restaurant || fallbackData.restaurant,
-
-          categories:
-            result.categories?.length
-              ? result.categories
-              : fallbackData.categories,
-
-          menu:
-            result.menu?.length
-              ? result.menu
-              : fallbackData.menu,
-        });
-      } catch (error) {
-        console.error(
-          "Homepage API error:",
-          error
-        );
-      }
-    };
-
-    fetchHomeData();
-  }, []);
+  const [data] = useState(fallbackData)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-[#f7f5f0] text-[#1a1917] font-sans">
+      {/* Top Banner Title - Matching Image Header */}
+      <div className="bg-[#f7f5f0] border-b border-gray-200 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-gray-600">
+        <span className="inline-flex items-center gap-1.5">
+          🌐 CUSTOMER WEBSITE • For Ordering, Table Booking, Party Booking & More
+        </span>
+      </div>
 
-      {/* =====================================================
-          NAVBAR
-      ===================================================== */}
-
-      <header className="h-[54px] border-b border-gray-100 bg-white">
-
-        <div className="mx-auto flex h-full max-w-[1400px] items-center px-4 sm:px-6 lg:px-8">
-
-          {/* Logo */}
-
-          <Link
-            to="/"
-            className="text-[21px] font-black tracking-[-1.5px]"
-          >
-            {data.restaurant.name}
-            <span className="text-orange-500">.</span>
+      {/* Main Navbar */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="SHP Restaurant Logo" className="h-9 w-9 rounded-lg object-cover shadow-sm" />
+            <span className="font-heading text-2xl font-black tracking-tight text-gray-900">
+              SHP<span className="text-[#f47b20]">.</span>
+            </span>
           </Link>
 
-          {/* Navigation */}
-
-          <nav className="ml-8 hidden items-center gap-5 md:flex lg:ml-10 lg:gap-6">
-
-            <Link
-              to="/"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Home
-            </Link>
-
-            <Link
-              to="/menu"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Menu
-            </Link>
-
-            <Link
-              to="/booking"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Book Table
-            </Link>
-
-            <Link
-              to="/delivery"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Delivery
-            </Link>
-
-            <Link
-              to="/party-booking"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Party Booking
-            </Link>
-
-            <Link
-              to="/offers"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Offers
-            </Link>
-
-            <Link
-              to="/contact"
-              className="text-[11px] font-medium text-gray-700 transition hover:text-orange-500"
-            >
-              Contact
-            </Link>
-
+          {/* Desktop Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-gray-700">
+            <Link to="/" className="text-[#f47b20] font-bold">Home</Link>
+            <Link to="/menu" className="hover:text-[#f47b20] transition">Menu</Link>
+            <Link to="/booking" className="hover:text-[#f47b20] transition">Book Table</Link>
+            <Link to="/delivery" className="hover:text-[#f47b20] transition">Delivery</Link>
+            <Link to="/party-booking" className="hover:text-[#f47b20] transition">Party Booking</Link>
+            <Link to="/offers" className="hover:text-[#f47b20] transition">Offers</Link>
+            <Link to="/contact" className="hover:text-[#f47b20] transition">Contact</Link>
           </nav>
 
-          {/* Right */}
-
-          <div className="ml-auto flex items-center gap-4">
-
-            <Link
-              to="/cart"
-              className="relative text-gray-800"
-            >
-              <ShoppingBag size={15} />
-
-              <span className="absolute -right-2 -top-2 flex h-[14px] w-[14px] items-center justify-center rounded-full bg-orange-500 text-[8px] text-white">
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <Link to="/menu" className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-800">
+              <ShoppingBag size={16} />
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#f47b20] text-[9px] font-bold text-white">
                 0
               </span>
             </Link>
 
             <Link
               to="/login"
-              className="rounded-[4px] bg-black px-4 py-[7px] text-[10px] font-medium text-white"
+              className="rounded-md bg-black px-4 py-1.5 text-xs font-bold text-white hover:bg-gray-800 transition"
             >
               Login
             </Link>
 
-          </div>
+            <Link
+              to="/admin"
+              className="hidden lg:inline-flex items-center gap-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-800 hover:border-[#f47b20] hover:text-[#f47b20]"
+            >
+              Outlet Panel <ArrowRight size={12} />
+            </Link>
 
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-gray-800 md:hidden"
+            >
+              {mobileMenuOpen ? <CloseIcon size={18} /> : <MenuIcon size={18} />}
+            </button>
+          </div>
         </div>
 
+        {/* Mobile Dropdown Nav */}
+        {mobileMenuOpen && (
+          <nav className="border-t border-gray-200 bg-white px-6 py-4 md:hidden space-y-3 text-xs font-semibold">
+            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block text-[#f47b20] font-bold">Home</Link>
+            <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block text-gray-700">Menu</Link>
+            <Link to="/booking" onClick={() => setMobileMenuOpen(false)} className="block text-gray-700">Book Table</Link>
+            <Link to="/delivery" onClick={() => setMobileMenuOpen(false)} className="block text-gray-700">Delivery</Link>
+            <Link to="/party-booking" onClick={() => setMobileMenuOpen(false)} className="block text-gray-700">Party Booking</Link>
+            <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block text-[#f47b20] font-bold pt-2 border-t">Outlet Panel (Staff)</Link>
+          </nav>
+        )}
       </header>
 
-
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <main>
-
-        <section
-          className="relative min-h-[285px] bg-cover bg-center"
-          style={{
-            backgroundImage: `url("${data.restaurant.heroImage}")`,
-          }}
-        >
-
-          {/* Dark overlay */}
-
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
-
-          {/* Content */}
-
-          <div className="relative mx-auto flex min-h-[285px] max-w-[1400px] items-center px-6 sm:px-10 lg:px-12">
-
-            <div className="max-w-[390px] text-white">
-
-              <h1 className="text-[38px] font-extrabold leading-[0.98] tracking-[-1.8px] sm:text-[42px]">
-                Good Food
-                <br />
-                Great Moments
+      {/* HERO BANNER - Exact layout matching Image */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 pt-6">
+        <div className="relative overflow-hidden rounded-2xl bg-[#0f0e0d] p-6 sm:p-12 lg:p-14 text-white shadow-xl">
+          <div className="grid items-center gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-7 space-y-4">
+              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.02]">
+                Good Food<br />
+                <span className="text-[#f47b20]">Great Moments</span>
               </h1>
 
-              <p className="mt-4 max-w-[340px] text-[10px] leading-[1.55] text-gray-300 sm:text-[11px]">
+              <p className="max-w-md text-xs sm:text-sm text-gray-300 leading-relaxed">
                 {data.restaurant.description}
               </p>
 
-              <div className="mt-5 flex gap-2">
-
+              <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link
                   to="/menu"
-                  className="rounded-[4px] bg-orange-500 px-5 py-[9px] text-[10px] font-semibold text-white transition hover:bg-orange-600"
+                  className="rounded-md bg-[#f47b20] px-6 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#d9630f] transition"
                 >
                   Order Now
                 </Link>
 
                 <Link
                   to="/booking"
-                  className="rounded-[4px] border border-white/80 px-5 py-[9px] text-[10px] font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-md border border-white/80 px-6 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
                 >
                   Book a Table
                 </Link>
-
               </div>
-
             </div>
 
-          </div>
-
-        </section>
-
-
-        {/* =====================================================
-            SERVICES
-        ===================================================== */}
-
-        <section className="relative z-10 mx-auto -mt-[17px] w-[calc(100%-32px)] max-w-[1250px] overflow-hidden rounded-[6px] bg-white shadow-[0_3px_18px_rgba(0,0,0,0.09)] sm:w-[calc(100%-60px)]">
-
-          <div className="grid grid-cols-4">
-
-            {services.map((service, index) => {
-
-              const Icon = service.icon;
-
-              return (
-                <Link
-                  key={service.title}
-                  to={service.link}
-                  className={`
-                    flex min-h-[82px]
-                    flex-col items-center
-                    justify-center
-                    border-gray-100
-                    px-1 text-center
-                    transition hover:bg-orange-50
-                    ${index !== 3 ? "border-r" : ""}
-                  `}
-                >
-
-                  <Icon
-                    size={21}
-                    strokeWidth={1.5}
-                    className="mb-1 text-orange-500"
-                  />
-
-                  <h3 className="text-[8px] font-bold sm:text-[9px]">
-                    {service.title}
-                  </h3>
-
-                  <p className="mt-[2px] text-[6px] leading-[1.4] text-gray-400 sm:text-[7px]">
-                    {service.description}
-                    <br />
-                    {service.action}
-                  </p>
-
-                </Link>
-              );
-
-            })}
-
-          </div>
-
-        </section>
-
-
-        {/* =====================================================
-            POPULAR CATEGORIES
-        ===================================================== */}
-
-        <section className="mx-auto max-w-[1250px] px-5 pb-7 pt-7 sm:px-8 lg:px-10">
-
-          <div className="mb-3 flex items-center justify-between">
-
-            <h2 className="text-[15px] font-bold tracking-[-0.3px] sm:text-[16px]">
-              Popular Categories
-            </h2>
-
-            <Link
-              to="/menu"
-              className="flex items-center gap-[2px] text-[8px] font-medium text-orange-500"
-            >
-              View All
-              <ChevronRight size={11} />
-            </Link>
-
-          </div>
-
-
-          <div className="grid grid-cols-5 gap-2 sm:gap-3">
-
-            {data.categories.slice(0, 5).map((category) => (
-
-              <Link
-                key={category.id || category.name}
-                to={`/menu?category=${encodeURIComponent(
-                  category.name
-                )}`}
-                className="group relative h-[95px] overflow-hidden rounded-[6px] bg-gray-200 sm:h-[105px]"
-              >
-
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative h-64 sm:h-72 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
                 <img
-                  src={category.image}
-                  alt={category.name}
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  src={data.restaurant.heroImage}
+                  alt="Delicious Food Dish"
+                  className="h-full w-full object-cover"
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+      {/* SERVICES FLOATING ROW - Exact 4 columns matching Image */}
+      <section className="relative z-10 mx-auto max-w-[1240px] px-4 sm:px-6 -mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-gray-200 bg-white p-2 sm:p-4 shadow-md gap-2 sm:gap-4">
+          {services.map((service) => {
+            const Icon = service.icon
+            return (
+              <Link
+                key={service.title}
+                to={service.link}
+                className="group flex flex-col items-center justify-center p-3 text-center rounded-lg border border-gray-100 hover:border-orange-200 hover:bg-orange-50/50 transition"
+              >
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-[#f47b20]">
+                  <Icon size={20} />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-[#f47b20]">
+                  {service.title}
+                </h3>
+                <p className="mt-0.5 text-[10px] text-gray-500 leading-tight">
+                  {service.description}<br />{service.action}
+                </p>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
 
-                <span className="absolute bottom-2 left-2 text-[9px] font-bold text-white sm:text-[10px]">
-                  {category.name}
-                </span>
+      {/* POPULAR CATEGORIES - Matching 5 grid cards in Image */}
+      <section className="mx-auto max-w-[1240px] px-4 sm:px-6 py-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading text-lg sm:text-xl font-bold tracking-tight text-gray-900">
+            Popular Categories
+          </h2>
+          <Link to="/menu" className="flex items-center gap-1 text-xs font-bold text-[#f47b20] hover:underline">
+            View All <ChevronRight size={13} />
+          </Link>
+        </div>
 
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {data.categories.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/menu?category=${encodeURIComponent(cat.name)}`}
+              className="group relative h-28 sm:h-32 overflow-hidden rounded-lg bg-black shadow-sm"
+            >
+              <img
+                src={cat.image}
+                alt={cat.name}
+                className="h-full w-full object-cover opacity-80 transition duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <span className="absolute bottom-2.5 left-2.5 text-xs font-bold text-white">
+                {cat.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* WEBSITE PAGES PREVIEW SECTION - Exact matching preview boxes in lower half of image */}
+      <section className="border-t border-gray-200 bg-[#efece6] py-12 px-4 sm:px-6">
+        <h2 className="text-center font-heading text-xs font-bold uppercase tracking-widest text-gray-600 mb-8">
+          WEBSITE PAGES PREVIEW
+        </h2>
+
+        <div className="mx-auto grid max-w-[1240px] gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 1. MENU PAGE PREVIEW */}
+          <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm flex flex-col">
+            <div className="bg-gray-100 py-2 text-center text-[11px] font-bold text-gray-600 border-b border-gray-200">
+              MENU PAGE
+            </div>
+            <div className="p-3.5 space-y-3 flex-1 flex flex-col">
+              <div className="flex items-center gap-2 border-b pb-2">
+                <Search size={14} className="text-gray-400" />
+                <span className="text-xs text-gray-400">Search food items...</span>
+              </div>
+
+              <div className="flex gap-2 text-[11px] font-bold border-b pb-2 text-gray-600 overflow-x-auto">
+                <span className="text-[#f47b20]">All</span>
+                <span>Pizza</span>
+                <span>Burgers</span>
+                <span>Indian</span>
+                <span>Chinese</span>
+              </div>
+
+              <div className="space-y-2.5 flex-1">
+                {data.menuPreview.slice(0, 4).map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-xs border-b border-gray-100 pb-2">
+                    <div className="flex items-center gap-2">
+                      <img src={item.image} alt={item.name} className="h-9 w-9 rounded object-cover" />
+                      <div>
+                        <p className="font-bold text-gray-800 text-[11px]">{item.name}</p>
+                        <p className="text-[10px] text-[#f47b20] font-semibold">₹{item.price}</p>
+                      </div>
+                    </div>
+                    <button className="rounded bg-[#f47b20] px-2 py-1 text-[10px] font-bold text-white">
+                      ADD
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <Link to="/menu" className="block w-full text-center rounded bg-[#f47b20] py-2 text-xs font-bold text-white mt-auto">
+                Open Full Menu Page
+              </Link>
+            </div>
+          </div>
+
+          {/* 2. TABLE BOOKING PAGE PREVIEW */}
+          <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm flex flex-col">
+            <div className="bg-gray-100 py-2 text-center text-[11px] font-bold text-gray-600 border-b border-gray-200">
+              TABLE BOOKING PAGE
+            </div>
+            <div className="p-3.5 space-y-2.5 text-xs flex-1 flex flex-col">
+              <p className="font-bold text-gray-900 flex items-center gap-1 text-xs">
+                <CalendarDays size={14} className="text-[#f47b20]" /> Book Your Table
+              </p>
+
+              <div>
+                <label className="text-[10px] text-gray-500 font-semibold block">Restaurant</label>
+                <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                  SHP Restaurant, Civil Lines
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Date</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    28 May 2025
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Time</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    7:30 PM
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Persons</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    4 People
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Area</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    Indoor
+                  </div>
+                </div>
+              </div>
+
+              <Link to="/booking" className="block w-full text-center rounded bg-[#f47b20] py-2 text-xs font-bold text-white mt-auto">
+                Check Availability
               </Link>
 
-            ))}
-
+              <img
+                src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80"
+                alt="Restaurant interior"
+                className="h-14 w-full object-cover rounded mt-2"
+              />
+            </div>
           </div>
 
-        </section>
+          {/* 3. PARTY BOOKING PAGE PREVIEW */}
+          <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm flex flex-col">
+            <div className="bg-gray-100 py-2 text-center text-[11px] font-bold text-gray-600 border-b border-gray-200">
+              PARTY BOOKING PAGE
+            </div>
+            <div className="p-3.5 space-y-2.5 text-xs flex-1 flex flex-col">
+              <p className="font-bold text-gray-900 flex items-center gap-1 text-xs">
+                <UsersRound size={14} className="text-[#f47b20]" /> Plan Your Celebration
+              </p>
+              <p className="text-[10px] text-gray-500">Make your special moments memorable with us.</p>
 
-
-        {/* =====================================================
-            WEBSITE PAGE PREVIEW
-        ===================================================== */}
-
-        <section className="border-t border-gray-100 bg-gray-50 px-3 py-5 sm:px-8">
-
-          <h2 className="mb-4 text-center text-[9px] font-bold tracking-wide text-gray-600">
-            WEBSITE PAGES PREVIEW
-          </h2>
-
-
-          <div className="mx-auto grid max-w-[1100px] gap-3 md:grid-cols-3">
-
-
-            {/* ================= MENU ================= */}
-
-            <div className="overflow-hidden rounded-[5px] border border-gray-200 bg-white">
-
-              <div className="flex h-[30px] items-center justify-center border-b border-gray-100 text-[7px] font-bold text-gray-500">
-                MENU PAGE
+              <div>
+                <label className="text-[10px] text-gray-500 font-semibold block">Occasion</label>
+                <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                  Birthday Bash
+                </div>
               </div>
 
-              <div className="p-3">
-
-                <div className="grid grid-cols-[48px_1fr] gap-2">
-
-                  {/* Sidebar */}
-
-                  <div className="flex flex-col gap-3 text-[6px] text-gray-500">
-
-                    <span className="font-bold text-orange-500">
-                      All
-                    </span>
-
-                    <span>Pizza</span>
-                    <span>Burgers</span>
-                    <span>Chinese</span>
-                    <span>Beverages</span>
-                    <span>Desserts</span>
-
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Date</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    05 June 2025
                   </div>
-
-
-                  {/* Items */}
-
-                  <div className="space-y-[7px]">
-
-                    {data.menu.slice(0, 5).map((item) => (
-
-                      <div
-                        key={item.id || item.name}
-                        className="grid grid-cols-[35px_1fr_auto] items-center gap-1.5"
-                      >
-
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-[35px] w-[35px] rounded object-cover"
-                        />
-
-                        <div>
-
-                          <p className="line-clamp-1 text-[7px] font-semibold">
-                            {item.name}
-                          </p>
-
-                          <p className="text-[7px] font-medium text-orange-500">
-                            ₹{item.price}
-                          </p>
-
-                        </div>
-
-                        <button className="rounded-[3px] bg-orange-500 px-1.5 py-1 text-[5px] font-bold text-white">
-                          ADD
-                        </button>
-
-                      </div>
-
-                    ))}
-
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold block">Guests</label>
+                  <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                    20 People
                   </div>
-
                 </div>
-
               </div>
 
-            </div>
-
-
-            {/* ================= TABLE BOOKING ================= */}
-
-            <div className="overflow-hidden rounded-[5px] border border-gray-200 bg-white">
-
-              <div className="flex h-[30px] items-center justify-center border-b border-gray-100 text-[7px] font-bold text-gray-500">
-                TABLE BOOKING PAGE
-              </div>
-
-              <div className="p-3">
-
-                <div className="space-y-1.5">
-
-                  <h3 className="mb-2 flex items-center gap-1 text-[10px] font-bold">
-                    <CalendarDays
-                      size={11}
-                      className="text-orange-500"
-                    />
-                    Book Your Table
-                  </h3>
-
-
-                  <PreviewInput
-                    label="Restaurant"
-                    value="SHP Restaurant, Civil Lines"
-                  />
-
-                  <PreviewInput
-                    label="Date"
-                    value="15 May 2025"
-                  />
-
-                  <PreviewInput
-                    label="Time"
-                    value="7:30 PM"
-                  />
-
-                  <PreviewInput
-                    label="No. of Persons"
-                    value="4 People"
-                  />
-
-                  <PreviewInput
-                    label="Table Preference"
-                    value="Any"
-                  />
-
-
-                  <Link
-                    to="/booking"
-                    className="mt-1 flex h-[24px] items-center justify-center rounded-[3px] bg-orange-500 text-[7px] font-semibold text-white"
-                  >
-                    Check Availability
-                  </Link>
-
-
-                  <img
-                    src={data.restaurant.heroImage}
-                    alt="Restaurant"
-                    className="mt-1 h-[65px] w-full rounded-[3px] object-cover"
-                  />
-
+              <div>
+                <label className="text-[10px] text-gray-500 font-semibold block">Requirements</label>
+                <div className="rounded border border-gray-200 px-2 py-1.5 text-[11px] text-gray-700 bg-gray-50">
+                  Decoration, Cake, Music
                 </div>
-
               </div>
 
+              <Link to="/party-booking" className="block w-full text-center rounded bg-[#f47b20] py-2 text-xs font-bold text-white mt-auto">
+                Send Request
+              </Link>
             </div>
-
-
-            {/* ================= PARTY BOOKING ================= */}
-
-            <div className="overflow-hidden rounded-[5px] border border-gray-200 bg-white">
-
-              <div className="flex h-[30px] items-center justify-center border-b border-gray-100 text-[7px] font-bold text-gray-500">
-                PARTY BOOKING PAGE
-              </div>
-
-              <div className="p-3">
-
-                <div className="space-y-1.5">
-
-                  <h3 className="mb-1 flex items-center gap-1 text-[10px] font-bold">
-                    <UsersRound
-                      size={11}
-                      className="text-orange-500"
-                    />
-                    Plan Your Celebration
-                  </h3>
-
-                  <p className="mb-2 text-[7px] leading-[1.4] text-gray-500">
-                    Make your special moments memorable
-                    with us.
-                  </p>
-
-
-                  <PreviewInput
-                    label="Occasion"
-                    value="Birthday"
-                  />
-
-                  <PreviewInput
-                    label="Date"
-                    value="05 June 2025"
-                  />
-
-                  <PreviewInput
-                    label="No. of Guests"
-                    value="20 People"
-                  />
-
-                  <PreviewInput
-                    label="Additional Requirements"
-                    value="Decoration, Cake..."
-                  />
-
-
-                  <Link
-                    to="/party-booking"
-                    className="mt-2 flex h-[24px] items-center justify-center rounded-[3px] bg-orange-500 text-[7px] font-semibold text-white"
-                  >
-                    Send Request
-                  </Link>
-
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
 
-        </section>
+          {/* 4. ORDER TRACKING PAGE PREVIEW */}
+          <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm flex flex-col">
+            <div className="bg-gray-100 py-2 text-center text-[11px] font-bold text-gray-600 border-b border-gray-200">
+              ORDER TRACKING PAGE
+            </div>
+            <div className="p-3.5 space-y-3 text-xs flex-1 flex flex-col">
+              <p className="font-bold text-gray-900 flex items-center gap-1 text-xs">
+                <Truck size={14} className="text-[#f47b20]" /> Track Your Order
+              </p>
+              <p className="text-[10px] text-gray-500 font-bold">Order ID: #1257</p>
 
-      </main>
+              <div className="space-y-2 text-[11px] border-l-2 border-orange-400 pl-3">
+                <div className="flex justify-between items-center text-emerald-700 font-bold">
+                  <span>● Order Confirmed</span>
+                  <span className="text-[9px] text-gray-400">10:00 AM</span>
+                </div>
+                <div className="flex justify-between items-center text-[#f47b20] font-bold">
+                  <span>● Preparing</span>
+                  <span className="text-[9px] text-gray-400">10:10 AM</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-400">
+                  <span>○ Out for Delivery</span>
+                  <span className="text-[9px] text-gray-400">10:25 AM</span>
+                </div>
+              </div>
 
+              <Link to="/delivery" className="block w-full text-center rounded bg-[#f47b20] py-2 text-xs font-bold text-white mt-auto">
+                Track Live Order
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* =====================================================
-          FOOTER
-      ===================================================== */}
+      {/* KEY FEATURES BAR - Exact matching bottom bar in Image */}
+      <section className="border-t border-gray-200 bg-white py-6 px-4 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <p className="text-center font-heading text-xs font-bold uppercase tracking-widest text-gray-500 mb-6">
+            KEY FEATURES
+          </p>
 
-      <footer className="flex min-h-[70px] items-center gap-5 border-t border-gray-100 px-5 sm:px-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
+            {[
+              { label: 'Table Booking', sub: '(Real-time Availability)', icon: CalendarDays },
+              { label: 'Home Delivery', sub: '(Tracking & Notifications)', icon: Truck },
+              { label: 'Party / Celebration', sub: 'Booking', icon: UsersRound },
+              { label: 'Multi Outlet', sub: 'Management', icon: Building2 },
+              { label: 'Live Order', sub: 'Tracking', icon: MapPin },
+              { label: 'Offers &', sub: 'Discounts', icon: Percent },
+              { label: 'Secure Payments', sub: '(Online / COD)', icon: CreditCard },
+              { label: 'User Friendly', sub: 'UI / UX', icon: Smile },
+            ].map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.label} className="flex flex-col items-center text-center">
+                  <div className="mb-1.5 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 text-[#f47b20]">
+                    <Icon size={18} />
+                  </div>
+                  <p className="text-[11px] font-bold text-gray-900 leading-tight">{item.label}</p>
+                  <p className="text-[9px] text-gray-500 leading-tight">{item.sub}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
 
-        <Link
-          to="/"
-          className="text-[19px] font-black tracking-[-1.3px]"
-        >
-          {data.restaurant.name}
-          <span className="text-orange-500">.</span>
-        </Link>
-
-        <p className="text-[8px] text-gray-500 sm:text-[9px]">
-          Good food for great moments.
-        </p>
-
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-[#0b0b0b] py-6 text-white">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
+          <Link to="/" className="font-heading text-xl font-bold text-white">
+            {data.restaurant.name}<span className="text-[#f47b20]">.</span>
+          </Link>
+          <p className="text-xs text-gray-400">Good food for great moments. All rights reserved.</p>
+          <div className="flex items-center gap-6 text-xs text-gray-300 font-medium">
+            <Link to="/menu" className="hover:text-[#f47b20]">Menu</Link>
+            <Link to="/booking" className="hover:text-[#f47b20]">Book Table</Link>
+            <Link to="/admin" className="hover:text-[#f47b20]">Outlet Panel</Link>
+          </div>
+        </div>
       </footer>
-
     </div>
-  );
-}
-
-
-/* ============================================================
-   SMALL REUSABLE FORM COMPONENT
-============================================================ */
-
-function PreviewInput({ label=" ", value="" }) {
-  return (
-    <div>
-
-      <label className="mb-1 block text-[6px] text-gray-500">
-        {label}
-      </label>
-
-      <div className="flex h-[23px] items-center rounded-[3px] border border-gray-200 px-2 text-[7px] text-gray-600">
-        {value}
-      </div>
-
-    </div>
-  );
+  )
 }
