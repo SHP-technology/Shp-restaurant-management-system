@@ -1,12 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ArrowLeft, MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-vue-next'
+import { restroHandler, type RestaurantData } from '../services/api'
 
 const name = ref('')
 const contact = ref('')
 const message = ref('')
 const submitted = ref(false)
+
+const outletInfo = ref<RestaurantData>({
+  outlet_name: 'SHP Restaurant - Civil Lines',
+  name: 'SHP Restaurant',
+  tagline: 'Good Food Great Moments',
+  description: 'Delicious food, your way — dine in, delivery or celebration, we’ve got you covered.',
+  hero_image: '',
+  address: 'Plot 14, Main Boulevard, Civil Lines, City',
+  phone: '+91 98765 43210 / 011 2345 6789',
+  email: 'contact@shprestaurant.com',
+  opening_hours: 'Mon - Sun: 11:00 AM – 11:30 PM',
+  gst_rate: '5%',
+  auto_accept: true,
+})
+
+onMounted(async () => {
+  try {
+    const data = await restroHandler.restaurants.getCurrent()
+    if (data) {
+      outletInfo.value = data
+    }
+  } catch {}
+})
 
 function handleSubmit() {
   submitted.value = true
@@ -45,26 +69,26 @@ function handleSubmit() {
             <div class="flex items-start gap-3">
               <MapPin :size="18" class="text-[#f47b20] shrink-0 mt-0.5" />
               <div>
-                <p class="font-bold text-gray-900">SHP Restaurant - Civil Lines</p>
-                <p class="text-gray-500">Plot 14, Main Boulevard, Civil Lines, City</p>
+                <p class="font-bold text-gray-900">{{ outletInfo.outlet_name }}</p>
+                <p class="text-gray-500">{{ outletInfo.address }}</p>
               </div>
             </div>
 
             <div class="flex items-center gap-3">
               <Phone :size="18" class="text-[#f47b20] shrink-0" />
-              <span>+91 98765 43210 / 011 2345 6789</span>
+              <span>{{ outletInfo.phone }}</span>
             </div>
 
             <div class="flex items-center gap-3">
               <Mail :size="18" class="text-[#f47b20] shrink-0" />
-              <span>contact@shprestaurant.com</span>
+              <span>{{ outletInfo.email }}</span>
             </div>
 
             <div class="flex items-start gap-3">
               <Clock :size="18" class="text-[#f47b20] shrink-0 mt-0.5" />
               <div>
                 <p class="font-bold text-gray-900">Operating Hours</p>
-                <p class="text-gray-500">Mon - Sun: 11:00 AM – 11:30 PM</p>
+                <p class="text-gray-500">{{ outletInfo.opening_hours }}</p>
               </div>
             </div>
           </div>

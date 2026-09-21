@@ -1,36 +1,45 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ArrowLeft, Percent, Gift, Copy, Check } from 'lucide-vue-next'
+import { restroHandler, type OfferData } from '../services/api'
 
 const copiedCode = ref<string | null>(null)
-
-const offers = [
+const offers = ref<OfferData[]>([
   {
     title: 'Weekend Special Offer',
     discount: 'Flat 20% OFF',
-    minSpend: 'On all orders above ₹499',
+    min_spend: 'On all orders above ₹499',
     code: 'SHP20',
     tag: 'HOT DEAL',
-    badgeColor: 'bg-rose-500 text-white',
+    badge_color: 'bg-rose-500 text-white',
   },
   {
     title: 'Welcome First Order',
     discount: '15% OFF',
-    minSpend: 'On your very first order',
+    min_spend: 'On your very first order',
     code: 'WELCOME15',
     tag: 'NEW USER',
-    badgeColor: 'bg-[#f47b20] text-white',
+    badge_color: 'bg-[#f47b20] text-white',
   },
   {
     title: 'Sweet Delight',
     discount: 'Free Dessert',
-    minSpend: 'On orders above ₹699',
+    min_spend: 'On orders above ₹699',
     code: 'DESSERT',
     tag: 'SPECIAL',
-    badgeColor: 'bg-emerald-600 text-white',
+    badge_color: 'bg-emerald-600 text-white',
   },
-]
+])
+
+onMounted(async () => {
+  try {
+    const data = await restroHandler.offers.list()
+    if (Array.isArray(data) && data.length > 0) {
+      offers.value = data
+    }
+  } catch {}
+})
 
 function handleCopy(code: string) {
   navigator.clipboard.writeText(code)
@@ -73,7 +82,7 @@ function handleCopy(code: string) {
           :key="offer.code"
           class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md"
         >
-          <span :class="['absolute top-4 right-4 rounded-full px-3 py-1 text-[10px] font-bold', offer.badgeColor]">
+          <span :class="['absolute top-4 right-4 rounded-full px-3 py-1 text-[10px] font-bold', offer.badge_color || 'bg-[#f47b20] text-white']">
             {{ offer.tag }}
           </span>
 
@@ -83,7 +92,7 @@ function handleCopy(code: string) {
 
           <h3 class="font-heading text-lg font-bold text-gray-900">{{ offer.title }}</h3>
           <p class="text-2xl font-black text-[#f47b20] mt-1">{{ offer.discount }}</p>
-          <p class="text-xs text-gray-500 mt-1">{{ offer.minSpend }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ offer.min_spend }}</p>
 
           <div class="mt-6 flex items-center justify-between border-t border-dashed border-gray-200 pt-4">
             <span class="font-mono text-xs font-bold tracking-wider text-gray-800 bg-gray-100 px-3 py-1.5 rounded border border-gray-300">

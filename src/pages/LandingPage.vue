@@ -193,6 +193,18 @@ const menuPreview = ref([
 
 onMounted(async () => {
   try {
+    const restData = await restroHandler.restaurants.getCurrent()
+    if (restData) {
+      restaurant.value = {
+        name: restData.name || 'SHP',
+        tagline: restData.tagline || 'Good Food Great Moments',
+        description: restData.description || 'Delicious food, your way — dine in, delivery or celebration, we’ve got you covered.',
+        heroImage: restData.hero_image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80',
+      }
+    }
+  } catch {}
+
+  try {
     const dishes = await restroHandler.menu.list()
     if (Array.isArray(dishes) && dishes.length > 0) {
       menuPreview.value = dishes.slice(0, 5).map((d) => ({

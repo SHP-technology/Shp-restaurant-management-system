@@ -99,7 +99,7 @@ const defaultMenuItems: MenuItem[] = [
   },
 ]
 
-const categories = ['All', 'Pizza', 'Burgers', 'Asian', 'Indian', 'Beverages', 'Desserts']
+const categories = ref<string[]>(['All', 'Pizza', 'Burgers', 'Asian', 'Indian', 'Beverages', 'Desserts'])
 
 const selectedCategory = ref('All')
 const searchQuery = ref('')
@@ -108,6 +108,13 @@ const cart = ref<Record<number, number>>({})
 const items = ref<MenuItem[]>(defaultMenuItems)
 
 onMounted(async () => {
+  try {
+    const catRes = await restroHandler.menu.getCategories()
+    if (Array.isArray(catRes) && catRes.length > 0) {
+      categories.value = ['All', ...catRes.map((c) => c.name)]
+    }
+  } catch {}
+
   try {
     const res = await restroHandler.menu.list()
     if (Array.isArray(res) && res.length > 0) {

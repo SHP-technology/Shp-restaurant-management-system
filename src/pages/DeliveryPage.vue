@@ -1,28 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ArrowLeft, Truck, MapPin, Clock, ShieldCheck } from 'lucide-vue-next'
-import { restroHandler } from '../services/api'
+import { restroHandler, type MenuItemData } from '../services/api'
 
 const address = ref('Flat 402, Sunset Towers, Civil Lines')
 const instructions = ref('Leave at door & ring bell')
 const orderPlaced = ref(false)
 const placedOrderId = ref('SHP-9482')
 const isPlacing = ref(false)
+const summaryItems = ref<Array<{ item: MenuItemData; quantity: number }>>([])
+
+onMounted(async () => {
+  try {
+    const dishes = await restroHandler.menu.list()
+    if (Array.isArray(dishes) && dishes.length > 0) {
+      summaryItems.value = [
+        { item: dishes[0], quantity: 1 },
+        { item: dishes[Math.min(5, dishes.length - 1)], quantity: 1 },
+      ]
+    }
+  } catch {}
+})
+
+const subtotal = computed(() => {
+  return summaryItems.value.reduce((sum, i) => sum + Number(i.item.price) * i.quantity, 0)
+})
+
+const taxAmount = computed(() => Math.round(subtotal.value * 0.05))
+const grandTotal = computed(() => subtotal.value + taxAmount.value)
 
 async function handlePlaceOrder() {
   isPlacing.value = true
   try {
+    const raw_items = summaryItems.value.map((si) => ({
+      menuItemId: si.item.id,
+      quantity: si.quantity,
+    }))
+
     const res = await restroHandler.orders.create({
       order_type: 'Delivery',
       customer_name: 'Alex Customer',
       customer_phone: '+91 98765 43210',
       delivery_address: address.value,
       delivery_instructions: instructions.value,
-      raw_items: [
-        { menuItemId: 1, quantity: 1 },
-        { menuItemId: 6, quantity: 1 },
-      ],
+      raw_items: raw_items.length > 0 ? raw_items : [{ menuItemId: 1, quantity: 1 }],
     })
     if (res?.id) {
       placedOrderId.value = String(res.id).replace('#', '')
@@ -173,24 +195,24 @@ async function handlePlaceOrder() {
         <div class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm h-fit">
           <h3 class="text-base font-bold text-gray-900">Order Summary</h3>
           <div class="space-y-2.5 text-xs border-b border-gray-100 pb-3.5">
-            <div class="flex justify-between text-gray-700">
-              <span>1x Truffle Mushroom Pizza</span>
-              <span class="font-bold">₹349</span>
-            </div>
-            <div class="flex justify-between text-gray-700">
-              <span>1x Matcha Citrus Sparkler</span>
-              <span class="font-bold">₹169</span>
+            <div
+              v-for="si in summaryItems"
+              :key="si.item.id"
+              class="flex justify-between text-gray-700"
+            >
+              <span>{{ si.quantity }}x {{ si.item.name }}</span>
+              <span class="font-bold">₹{{ Number(si.item.price) * si.quantity }}</span>
             </div>
           </div>
 
           <div class="space-y-2 text-[11px] text-gray-500 border-b border-gray-100 pb-3.5">
             <div class="flex justify-between">
               <span>Subtotal</span>
-              <span class="text-gray-800 font-medium">₹518</span>
+              <span class="text-gray-800 font-medium">₹{{ subtotal }}</span>
             </div>
             <div class="flex justify-between">
-              <span>Taxes & Packaging</span>
-              <span class="text-gray-800 font-medium">₹36</span>
+              <span>Taxes & Packaging (5% GST)</span>
+              <span class="text-gray-800 font-medium">₹{{ taxAmount }}</span>
             </div>
             <div class="flex justify-between">
               <span>Delivery Charge</span>
@@ -200,7 +222,7 @@ async function handlePlaceOrder() {
 
           <div class="flex justify-between text-base font-bold text-gray-900 pt-0.5">
             <span>Grand Total</span>
-            <span class="text-[#f47b20]">₹554</span>
+            <span class="text-[#f47b20]">₹{{ grandTotal }}</span>
           </div>
         </div>
       </div>

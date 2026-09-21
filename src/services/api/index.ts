@@ -81,6 +81,32 @@ export interface CustomerData {
   totalSpent: string
 }
 
+export interface OfferData {
+  id?: number | string
+  title: string
+  discount: string
+  min_spend: string
+  code: string
+  tag: string
+  badge_color?: string
+  is_active?: boolean
+}
+
+export interface RestaurantData {
+  id?: string
+  name: string
+  tagline: string
+  description: string
+  hero_image: string
+  outlet_name: string
+  address: string
+  phone: string
+  email: string
+  opening_hours: string
+  gst_rate: string
+  auto_accept: boolean
+}
+
 export interface DashboardStatsData {
   stats: Array<{ label: string; value: string; sub1: string; sub2: string }>
   reports: {
@@ -127,10 +153,26 @@ class RestroHandler {
     },
   }
 
+  // --- RESTAURANT & OUTLET ---
+  restaurants = {
+    getCurrent: async () => {
+      const response = await api.get<RestaurantData[]>('/restaurants')
+      return Array.isArray(response.data) ? response.data[0] : response.data
+    },
+    update: async (id: string, payload: Partial<RestaurantData>) => {
+      const response = await api.patch<RestaurantData>(`/restaurants/${id}`, payload)
+      return response.data
+    },
+  }
+
   // --- MENU & CATEGORIES ---
   menu = {
     list: async (params?: { category?: string; search?: string; veg_only?: boolean }) => {
       const response = await api.get<MenuItemData[]>('/menu', { params })
+      return response.data
+    },
+    getCategories: async () => {
+      const response = await api.get<Array<{ id: number; name: string }>>('/menu/categories')
       return response.data
     },
     getById: async (id: number | string) => {
@@ -235,6 +277,18 @@ class RestroHandler {
   customers = {
     list: async () => {
       const response = await api.get<CustomerData[]>('/customers')
+      return response.data
+    },
+  }
+
+  // --- OFFERS & PROMOTIONS ---
+  offers = {
+    list: async () => {
+      const response = await api.get<OfferData[]>('/offers')
+      return response.data
+    },
+    create: async (payload: Partial<OfferData>) => {
+      const response = await api.post<OfferData>('/offers', payload)
       return response.data
     },
   }

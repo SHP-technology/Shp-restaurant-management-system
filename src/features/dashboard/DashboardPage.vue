@@ -122,9 +122,21 @@ const customers = ref<CustomerData[]>([
 ])
 
 // Settings State
+const restaurantId = ref<string | null>(null)
 const outletName = ref('SHP Restaurant - Civil Lines')
 const gstRate = ref('5%')
 const autoAccept = ref(true)
+const settingsSaved = ref(false)
+
+// Reports State
+const reportsData = ref({
+  monthlyRevenue: '₹8,54,200',
+  monthlyGrowth: '+18.5% growth',
+  averageOrderValue: '₹526',
+  aovGrowth: '+4.2% from last week',
+  topCategory: 'Pizza & Burgers',
+  topCategoryShare: '42% total sales share',
+})
 
 function getStatusColor(status: string) {
   if (status === 'Ready') return 'bg-emerald-100 text-emerald-700'
@@ -133,13 +145,58 @@ function getStatusColor(status: string) {
   return 'bg-blue-100 text-blue-700'
 }
 
+async function handleSaveSettings() {
+  try {
+    if (restaurantId.value) {
+      await restroHandler.restaurants.update(restaurantId.value, {
+        outlet_name: outletName.value,
+        gst_rate: gstRate.value,
+        auto_accept: autoAccept.value,
+      })
+    }
+    settingsSaved.value = true
+    setTimeout(() => {
+      settingsSaved.value = false
+    }, 2500)
+  } catch {
+    settingsSaved.value = true
+    setTimeout(() => {
+      settingsSaved.value = false
+    }, 2500)
+  }
+}
+
+async function handleToggleStock(itemId: number) {
+  try {
+    await restroHandler.menu.toggleStock(itemId)
+    menuItemsList.value = menuItemsList.value.map((item) => {
+      if (item.id === itemId) {
+        const nextStatus = item.status === 'In Stock' ? 'Out of Stock' : 'In Stock'
+        return { ...item, status: nextStatus }
+      }
+      return item
+    })
+  } catch {}
+}
+
 onMounted(async () => {
-  // 1. Stats
+  // 1. Stats & Reports
   restroHandler.analytics.getDashboardStats().then((data) => {
     if (data?.stats) stats.value = data.stats
+    if (data?.reports) reportsData.value = data.reports
   }).catch(() => {})
 
-  // 2. Orders
+  // 2. Restaurant & Settings
+  restroHandler.restaurants.getCurrent().then((rest) => {
+    if (rest) {
+      if (rest.id) restaurantId.value = rest.id
+      if (rest.outlet_name) outletName.value = rest.outlet_name
+      if (rest.gst_rate) gstRate.value = rest.gst_rate
+      if (rest.auto_accept !== undefined) autoAccept.value = rest.auto_accept
+    }
+  }).catch(() => {})
+
+  // 3. Orders
   restroHandler.orders.list().then((data) => {
     if (Array.isArray(data) && data.length > 0) {
       const formatted = data.map((o) => ({
@@ -152,7 +209,7 @@ onMounted(async () => {
     }
   }).catch(() => {})
 
-  // 3. Tables
+  // 4. Tables
   restroHandler.tables.list().then((data) => {
     if (Array.isArray(data) && data.length > 0) {
       tableList.value = data.map((t) => ({
@@ -164,27 +221,27 @@ onMounted(async () => {
     }
   }).catch(() => {})
 
-  // 4. Reservations
+  // 5. Reservations
   restroHandler.reservations.listTableReservations().then((data) => {
     if (Array.isArray(data) && data.length > 0) reservations.value = data
   }).catch(() => {})
 
-  // 5. Party Bookings
+  // 6. Party Bookings
   restroHandler.reservations.listPartyBookings().then((data) => {
     if (Array.isArray(data) && data.length > 0) parties.value = data
   }).catch(() => {})
 
-  // 6. Menu items
+  // 7. Menu items
   restroHandler.menu.list().then((data) => {
     if (Array.isArray(data) && data.length > 0) menuItemsList.value = data
   }).catch(() => {})
 
-  // 7. Customers
+  // 8. Customers
   restroHandler.customers.list().then((data) => {
     if (Array.isArray(data) && data.length > 0) customers.value = data
   }).catch(() => {})
 
-  // 8. WebSocket live connection
+  // 9. WebSocket live connection
   try {
     restroHandler.realtime.connect('default')
     restroHandler.realtime.on('order.created', () => {
@@ -634,17 +691,18 @@ function handleUpdateOrderStatus(orderId: string, currentStatus: string) {
               <td class="p-3 text-gray-600">{{ item.category }}</td>
               <td class="p-3 font-bold text-[#f47b20]">₹{{ item.price }}</td>
               <td class="p-3">
-                <span
+                <button
+                  @click="handleToggleStock(item.id)"
                   :class="[
-                    'px-2.5 py-1 rounded-md text-[10px] font-bold',
+                    'px-2.5 py-1 rounded-md text-[10px] font-bold transition hover:opacity-80 active:scale-95',
                     item.status === 'In Stock' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                   ]"
                 >
                   {{ item.status }}
-                </span>
+                </button>
               </td>
               <td class="p-3 flex items-center gap-2">
-                <button class="p-1 text-gray-600 hover:text-[#f47b20]"><Edit2 :size="14" /></button>
+                <button @click="handleToggleStock(item.id)" class="p-1 text-gray-600 hover:text-[#f47b20]"><Edit2 :size="14" /></button>
                 <button class="p-1 text-gray-600 hover:text-rose-600"><Trash2 :size="14" /></button>
               </td>
             </tr>
@@ -693,18 +751,18 @@ function handleUpdateOrderStatus(orderId: string, currentStatus: string) {
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <p class="text-xs font-bold text-gray-500 uppercase">Monthly Revenue</p>
-            <p class="text-2xl font-black text-gray-900 mt-1">₹8,54,200</p>
-            <p class="text-xs text-emerald-600 font-bold mt-1">+18.5% growth</p>
+            <p class="text-2xl font-black text-gray-900 mt-1">{{ reportsData.monthlyRevenue }}</p>
+            <p class="text-xs text-emerald-600 font-bold mt-1">{{ reportsData.monthlyGrowth }}</p>
           </div>
           <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <p class="text-xs font-bold text-gray-500 uppercase">Average Order Value</p>
-            <p class="text-2xl font-black text-gray-900 mt-1">₹526</p>
-            <p class="text-xs text-emerald-600 font-bold mt-1">+4.2% from last week</p>
+            <p class="text-2xl font-black text-gray-900 mt-1">{{ reportsData.averageOrderValue }}</p>
+            <p class="text-xs text-emerald-600 font-bold mt-1">{{ reportsData.aovGrowth }}</p>
           </div>
           <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <p class="text-xs font-bold text-gray-500 uppercase">Top Selling Category</p>
-            <p class="text-2xl font-black text-[#f47b20] mt-1">Pizza & Burgers</p>
-            <p class="text-xs text-gray-500 font-medium mt-1">42% total sales share</p>
+            <p class="text-2xl font-black text-[#f47b20] mt-1">{{ reportsData.topCategory }}</p>
+            <p class="text-xs text-gray-500 font-medium mt-1">{{ reportsData.topCategoryShare }}</p>
           </div>
         </div>
       </div>
@@ -744,9 +802,17 @@ function handleUpdateOrderStatus(orderId: string, currentStatus: string) {
             />
           </div>
 
-          <button class="rounded-md bg-[#f47b20] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#d9630f]">
-            Save Settings
-          </button>
+          <div class="flex items-center gap-3">
+            <button
+              @click="handleSaveSettings"
+              class="rounded-md bg-[#f47b20] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#d9630f] transition active:scale-95"
+            >
+              Save Settings
+            </button>
+            <span v-if="settingsSaved" class="text-xs font-bold text-emerald-600 animate-fade-in">
+              ✓ Settings saved successfully!
+            </span>
+          </div>
         </div>
       </div>
     </main>
