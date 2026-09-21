@@ -173,48 +173,28 @@ SPECTACULAR_SETTINGS = {
 }
 
 # ==============================================================================
-# JAZZMIN THEME CONFIGURATION
+# JAZZMIN THEME CONFIGURATION (Original Jazzmin Theme)
 # ==============================================================================
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
     "site_title": "SHP Restro Admin",
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_header": "SHP Restaurant OS",
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_brand": "SHP Restro",
-    # Logo to use for your site, must be present in static files, used for brand on top left
-    "site_logo": None,
-    # Welcome text on the login screen
     "welcome_sign": "Welcome to SHP Restaurant Management System",
-    # Copyright on the footer
     "copyright": "SHP Technology Ltd",
-    # The model admin to search from the search bar, search bar omitted if excluded
     "search_model": ["orders.Order", "customers.Customer", "menu.MenuItem"],
-    # Field name on user model that contains avatar ImageField/URLField/CharField or a callable that receives the user
-    "user_avatar": None,
-    ############
-    # Top Menu #
-    ############
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Open API Docs", "url": "/api/docs/", "new_window": True},
         {"name": "Live Frontend", "url": "http://localhost:5173", "new_window": True},
     ],
-    #############
-    # Side Menu #
-    #############
     "show_sidebar": True,
     "navigation_expanded": True,
-    "hide_apps": [],
-    "hide_models": [],
-    # Icons for apps/models
     "icons": {
         "authentication.User": "fas fa-user-shield",
         "restaurants.Restaurant": "fas fa-store-alt",
-        "restaurants.Outlet": "fas fa-utensils",
         "menu.Category": "fas fa-layer-group",
-        "menu.MenuItem": "fas fa-pizza-slice",
-        "tables.Table": "fas fa-chair",
+        "menu.MenuItem": "fas fa-utensils",
+        "tables.RestaurantTable": "fas fa-chair",
         "orders.Order": "fas fa-receipt",
         "orders.OrderItem": "fas fa-hamburger",
         "reservations.TableReservation": "fas fa-calendar-check",
@@ -222,42 +202,9 @@ JAZZMIN_SETTINGS = {
         "customers.Customer": "fas fa-users",
         "promotions.Offer": "fas fa-percent",
     },
-    # Default icon for parent apps
     "default_icon_parents": "fas fa-chevron-circle-right",
-    # Default icon for child models
     "default_icon_children": "fas fa-circle",
     "changeform_format": "horizontal_tabs",
 }
 
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": False,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": "navbar-dark",
-    "accent": "accent-warning",
-    "navbar": "navbar-dark",
-    "no_navbar_border": False,
-    "navbar_fixed": True,
-    "layout_boxed": False,
-    "footer_fixed": False,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-warning",
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": False,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": True,
-    "theme": "default",
-    "dark_mode_theme": None,
-    "button_classes": {
-        "primary": "btn-warning",
-        "secondary": "btn-outline-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success",
-    },
-}
 
