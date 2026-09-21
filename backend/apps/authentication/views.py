@@ -41,8 +41,27 @@ class LoginView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class CustomTokenRefreshView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_str = request.data.get('refreshToken') or request.data.get('refresh')
+        if not refresh_str:
+            return Response({'error': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh = RefreshToken(refresh_str)
+            access = str(refresh.access_token)
+            return Response({
+                'accessToken': access,
+                'access': access,
+                'refreshToken': str(refresh),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         try:
