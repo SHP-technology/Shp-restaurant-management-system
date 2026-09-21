@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -19,6 +19,15 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
+import {
+  restroHandler,
+  type TableData,
+  type OrderData,
+  type ReservationData,
+  type PartyBookingData,
+  type MenuItemData,
+  type CustomerData,
+} from '../../services/api'
 
 export function DashboardPage() {
   const clearSession = useAuthStore((state) => state.clearSession)
@@ -27,7 +36,8 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useState('Dashboard')
   const [orderFilter, setOrderFilter] = useState('All')
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await restroHandler.auth.logout()
     clearSession()
     navigate('/')
   }
@@ -47,40 +57,156 @@ export function DashboardPage() {
   ]
 
   // Dashboard Stats
-  const stats = [
+  const [stats, setStats] = useState([
     { label: "Today's Orders", value: '54', sub1: '+12%', sub2: '+2%' },
     { label: 'Table Bookings', value: '18', sub1: '+0%', sub2: '-1%' },
     { label: 'Delivery Orders', value: '32', sub1: '+10%', sub2: '+18%' },
     { label: 'Party Bookings', value: '06', sub1: '+5%', sub2: '-1%' },
-  ]
+  ])
 
   // Live Orders
-  const liveOrders = [
+  const [liveOrders, setLiveOrders] = useState<OrderData[]>([
     { id: '#1258', type: 'Dine In', items: '2 items • Truffle Pizza, Lemonade', customer: 'Table 4 (Rahul M.)', price: '₹458', status: 'New', statusColor: 'bg-blue-100 text-blue-700' },
     { id: '#1257', type: 'Delivery', items: '3 items • Veg Biryani, Lava Cake', customer: 'Harsh P. (Civil Lines)', price: '₹678', status: 'Preparing', statusColor: 'bg-[#f47b20]/20 text-[#f47b20]' },
     { id: '#1256', type: 'Dine In', items: '1 item • Burrata Margherita', customer: 'Table 12 (Ananya R.)', price: '₹249', status: 'Ready', statusColor: 'bg-emerald-100 text-emerald-700' },
     { id: '#1255', type: 'Delivery', items: '4 items • Smash Burgers, Fries', customer: 'Vikram S. (Sunset Towers)', price: '₹689', status: 'New', statusColor: 'bg-blue-100 text-blue-700' },
     { id: '#1254', type: 'Takeaway', items: '2 items • Schezwan Noodles', customer: 'Priya K.', price: '₹378', status: 'Preparing', statusColor: 'bg-amber-100 text-amber-700' },
     { id: '#1253', type: 'Dine In', items: '3 items • Pasta, Garlic Bread', customer: 'Table 1 (Amit K.)', price: '₹520', status: 'Completed', statusColor: 'bg-gray-100 text-gray-700' },
-  ]
+  ])
 
   // Table Management State
-  const [tableList, setTableList] = useState(
+  const [tableList, setTableList] = useState<TableData[]>(
     Array.from({ length: 16 }, (_, i) => {
       const num = i + 1
-      let status = 'Available'
+      let status: TableData['status'] = 'Available'
       if (num === 5 || num === 7) status = 'Booked'
       if (num === 3 || num === 12) status = 'Occupied'
       const seats = num % 3 === 0 ? 6 : num % 2 === 0 ? 4 : 2
-      return { num, status, seats }
+      return { id: num, num, status, seats }
     })
   )
+
+  // Reservations State
+  const [reservations, setReservations] = useState<ReservationData[]>([
+    { id: 'RES-101', name: 'Harsh Patel', phone: '+91 98765 43210', date: '28 May 2025', time: '7:30 PM', guests: '4 People', area: 'Indoor (Table 5)', status: 'Confirmed' },
+    { id: 'RES-102', name: 'Neha Sharma', phone: '+91 98123 45678', date: '28 May 2025', time: '8:15 PM', guests: '2 People', area: 'Rooftop', status: 'Pending' },
+    { id: 'RES-103', name: 'Karan Mehra', phone: '+91 99887 76655', date: '29 May 2025', time: '1:30 PM', guests: '6 People', area: 'VIP Booth', status: 'Confirmed' },
+  ])
+
+  // Delivery Orders State
+  const [deliveryList, setDeliveryList] = useState<OrderData[]>([
+    { id: '#DEL-801', customer: 'Rohan Gupta', phone: '+91 98765 11223', address: 'Flat 302, Green Park', status: 'Out for Delivery', driver: 'Suresh (Rider #4)', time: '20 mins left', type: 'Delivery' },
+    { id: '#DEL-802', customer: 'Sneha Roy', phone: '+91 98111 22334', address: 'B-12, Model Town', status: 'Preparing', driver: 'Assigning...', time: '35 mins left', type: 'Delivery' },
+    { id: '#DEL-803', customer: 'Aman Verma', phone: '+91 97777 88899', address: 'Suite 401, Tech Hub', status: 'Delivered', driver: 'Ramesh (Rider #1)', time: 'Completed', type: 'Delivery' },
+  ])
+
+  // Party Bookings State
+  const [parties, setParties] = useState<PartyBookingData[]>([
+    { id: 'PRT-501', occasion: 'Birthday Bash', client: 'Pooja Kapoor', phone: '+91 98765 43210', date: '05 June 2025', guests: '20 People', requirements: 'Decoration, Cake, Music', status: 'Confirmed' },
+    { id: 'PRT-502', occasion: 'Corporate Gala', client: 'TechCorp Solutions', phone: '+91 98111 22334', date: '12 June 2025', guests: '50 People', requirements: 'Private Hall & Cocktail Bar', status: 'Pending Inquiry' },
+  ])
+
+  // Menu Management State
+  const [menuItemsList, setMenuItemsList] = useState<MenuItemData[]>([
+    { id: 1, name: 'Truffle Mushroom Pizza', category: 'Pizza', price: 349, status: 'In Stock', rating: 4.9, prepTime: '20 mins', isVeg: true, image: '', description: '' },
+    { id: 2, name: 'Artisan Smash Burger', category: 'Burgers', price: 279, status: 'In Stock', rating: 4.8, prepTime: '15 mins', isVeg: false, image: '', description: '' },
+    { id: 3, name: 'Dum Pukht Veg Biryani', category: 'Indian', price: 299, status: 'In Stock', rating: 4.8, prepTime: '25 mins', isVeg: true, image: '', description: '' },
+    { id: 4, name: 'Spicy Schezwan Noodles', category: 'Chinese', price: 249, status: 'In Stock', rating: 4.7, prepTime: '18 mins', isVeg: true, image: '', description: '' },
+    { id: 5, name: 'Matcha Citrus Sparkler', category: 'Beverages', price: 169, status: 'Out of Stock', rating: 4.6, prepTime: '5 mins', isVeg: true, image: '', description: '' },
+  ])
+
+  // Customers State
+  const [customers, setCustomers] = useState<CustomerData[]>([
+    { id: 'CUST-01', name: 'Harsh Patel', phone: '+91 98765 43210', visits: 14, totalSpent: '₹12,450', tag: 'VIP' },
+    { id: 'CUST-02', name: 'Ananya Rao', phone: '+91 98123 45678', visits: 8, totalSpent: '₹6,800', tag: 'Regular' },
+    { id: 'CUST-03', name: 'Vikram Singh', phone: '+91 99887 11223', visits: 3, totalSpent: '₹2,350', tag: 'New' },
+  ])
+
+  // Settings State
+  const [outletName, setOutletName] = useState('SHP Restaurant - Civil Lines')
+  const [gstRate, setGstRate] = useState('5%')
+  const [autoAccept, setAutoAccept] = useState(true)
+
+  // Fetch backend data on mount
+  useEffect(() => {
+    // 1. Stats
+    restroHandler.analytics.getDashboardStats().then((data) => {
+      if (data?.stats) setStats(data.stats)
+    }).catch(() => {})
+
+    // 2. Orders
+    restroHandler.orders.list().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        const formatted = data.map((o) => ({
+          ...o,
+          statusColor: o.status === 'Ready' ? 'bg-emerald-100 text-emerald-700' :
+                       o.status === 'Preparing' ? 'bg-[#f47b20]/20 text-[#f47b20]' :
+                       o.status === 'Completed' ? 'bg-gray-100 text-gray-700' :
+                       'bg-blue-100 text-blue-700'
+        }))
+        setLiveOrders(formatted)
+        const deliveries = formatted.filter((o) => o.type === 'Delivery' || o.order_type === 'Delivery')
+        if (deliveries.length > 0) setDeliveryList(deliveries)
+      }
+    }).catch(() => {})
+
+    // 3. Tables
+    restroHandler.tables.list().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setTableList(data.map((t) => ({
+          id: t.id,
+          num: t.num,
+          status: t.status,
+          seats: t.seats || 4,
+        })))
+      }
+    }).catch(() => {})
+
+    // 4. Reservations
+    restroHandler.reservations.listTableReservations().then((data) => {
+      if (Array.isArray(data) && data.length > 0) setReservations(data)
+    }).catch(() => {})
+
+    // 5. Party Bookings
+    restroHandler.reservations.listPartyBookings().then((data) => {
+      if (Array.isArray(data) && data.length > 0) setParties(data)
+    }).catch(() => {})
+
+    // 6. Menu items
+    restroHandler.menu.list().then((data) => {
+      if (Array.isArray(data) && data.length > 0) setMenuItemsList(data)
+    }).catch(() => {})
+
+    // 7. Customers
+    restroHandler.customers.list().then((data) => {
+      if (Array.isArray(data) && data.length > 0) setCustomers(data)
+    }).catch(() => {})
+
+    // 8. WebSocket live connection
+    try {
+      restroHandler.realtime.connect('default')
+      restroHandler.realtime.on('order.created', () => {
+        restroHandler.orders.list().then((d) => d && setLiveOrders(d))
+      })
+      restroHandler.realtime.on('table.status_updated', () => {
+        restroHandler.tables.list().then((d) => d && setTableList(d))
+      })
+    } catch {
+      // Offline fallback
+    }
+
+    return () => {
+      restroHandler.realtime.disconnect()
+    }
+  }, [])
 
   const toggleTableStatus = (num: number) => {
     setTableList((prev) =>
       prev.map((t) => {
         if (t.num === num) {
-          const nextStatus = t.status === 'Available' ? 'Booked' : t.status === 'Booked' ? 'Occupied' : 'Available'
+          const nextStatus: TableData['status'] =
+            t.status === 'Available' ? 'Booked' : t.status === 'Booked' ? 'Occupied' : 'Available'
+          restroHandler.tables.update(t.id || num, { status: nextStatus }).catch(() => {})
           return { ...t, status: nextStatus }
         }
         return t
@@ -88,46 +214,19 @@ export function DashboardPage() {
     )
   }
 
-  // Reservations State
-  const reservations = [
-    { id: 'RES-101', name: 'Harsh Patel', phone: '+91 98765 43210', date: '28 May 2025', time: '7:30 PM', guests: '4 People', area: 'Indoor (Table 5)', status: 'Confirmed' },
-    { id: 'RES-102', name: 'Neha Sharma', phone: '+91 98123 45678', date: '28 May 2025', time: '8:15 PM', guests: '2 People', area: 'Rooftop', status: 'Pending' },
-    { id: 'RES-103', name: 'Karan Mehra', phone: '+91 99887 76655', date: '29 May 2025', time: '1:30 PM', guests: '6 People', area: 'VIP Booth', status: 'Confirmed' },
-  ]
+  const handleUpdateOrderStatus = (orderId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'New' ? 'Preparing' :
+                       currentStatus === 'Preparing' ? 'Ready' :
+                       currentStatus === 'Ready' ? 'Completed' : 'New'
 
-  // Delivery Orders State
-  const deliveryList = [
-    { id: '#DEL-801', customer: 'Rohan Gupta', phone: '+91 98765 11223', address: 'Flat 302, Green Park', status: 'Out for Delivery', driver: 'Suresh (Rider #4)', time: '20 mins left' },
-    { id: '#DEL-802', customer: 'Sneha Roy', phone: '+91 98111 22334', address: 'B-12, Model Town', status: 'Preparing', driver: 'Assigning...', time: '35 mins left' },
-    { id: '#DEL-803', customer: 'Aman Verma', phone: '+91 97777 88899', address: 'Suite 401, Tech Hub', status: 'Delivered', driver: 'Ramesh (Rider #1)', time: 'Completed' },
-  ]
-
-  // Party Bookings State
-  const parties = [
-    { id: 'PRT-501', occasion: 'Birthday Bash', client: 'Pooja Kapoor', date: '05 June 2025', guests: '20 People', requirements: 'Decoration, Cake, Music', status: 'Confirmed' },
-    { id: 'PRT-502', occasion: 'Corporate Gala', client: 'TechCorp Solutions', date: '12 June 2025', guests: '50 People', requirements: 'Private Hall & Cocktail Bar', status: 'Pending Inquiry' },
-  ]
-
-  // Menu Management State
-  const menuItems = [
-    { id: 1, name: 'Truffle Mushroom Pizza', category: 'Pizza', price: 349, status: 'In Stock' },
-    { id: 2, name: 'Artisan Smash Burger', category: 'Burgers', price: 279, status: 'In Stock' },
-    { id: 3, name: 'Dum Pukht Veg Biryani', category: 'Indian', price: 299, status: 'In Stock' },
-    { id: 4, name: 'Spicy Schezwan Noodles', category: 'Chinese', price: 249, status: 'In Stock' },
-    { id: 5, name: 'Matcha Citrus Sparkler', category: 'Beverages', price: 169, status: 'Out of Stock' },
-  ]
-
-  // Customers State
-  const customers = [
-    { id: 'CUST-01', name: 'Harsh Patel', phone: '+91 98765 43210', visits: 14, totalSpent: '₹12,450', tag: 'VIP' },
-    { id: 'CUST-02', name: 'Ananya Rao', phone: '+91 98123 45678', visits: 8, totalSpent: '₹6,800', tag: 'Regular' },
-    { id: 'CUST-03', name: 'Vikram Singh', phone: '+91 99887 11223', visits: 3, totalSpent: '₹2,350', tag: 'New' },
-  ]
-
-  // Settings State
-  const [outletName, setOutletName] = useState('SHP Restaurant - Civil Lines')
-  const [gstRate, setGstRate] = useState('5%')
-  const [autoAccept, setAutoAccept] = useState(true)
+    restroHandler.orders.updateStatus(orderId, nextStatus)
+      .then(() => {
+        setLiveOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: nextStatus } : o))
+      })
+      .catch(() => {
+        setLiveOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: nextStatus } : o))
+      })
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f3ef] text-[#1d211e] flex flex-col md:flex-row font-sans">
@@ -367,7 +466,10 @@ export function DashboardPage() {
                         </span>
                       </td>
                       <td className="p-3">
-                        <button className="rounded bg-gray-900 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-[#f47b20]">
+                        <button
+                          onClick={() => handleUpdateOrderStatus(o.id, o.status)}
+                          className="rounded bg-gray-900 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-[#f47b20] transition active:scale-95"
+                        >
                           Update Status
                         </button>
                       </td>
@@ -478,11 +580,11 @@ export function DashboardPage() {
                     <span className="font-bold text-gray-900">{del.id}</span>
                     <span className="rounded bg-blue-100 text-blue-700 px-2 py-0.5 text-[10px] font-bold">{del.status}</span>
                   </div>
-                  <p className="text-xs font-bold text-gray-800">{del.customer} ({del.phone})</p>
-                  <p className="text-xs text-gray-500">📍 {del.address}</p>
+                  <p className="text-xs font-bold text-gray-800">{del.customer || del.customer_name} ({del.phone || del.customer_phone})</p>
+                  <p className="text-xs text-gray-500">📍 {del.address || del.delivery_address}</p>
                   <div className="pt-2 border-t flex justify-between items-center text-xs">
-                    <span className="text-gray-600 font-medium">🛵 {del.driver}</span>
-                    <span className="text-[#f47b20] font-bold">{del.time}</span>
+                    <span className="text-gray-600 font-medium">🛵 {del.driver || 'Rider Assigned'}</span>
+                    <span className="text-[#f47b20] font-bold">{del.time || del.estimated_time}</span>
                   </div>
                 </div>
               ))}
@@ -539,7 +641,7 @@ export function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {menuItems.map((item) => (
+                {menuItemsList.map((item) => (
                   <tr key={item.id}>
                     <td className="p-3 font-bold text-gray-900">{item.name}</td>
                     <td className="p-3 text-gray-600">{item.category}</td>
@@ -597,7 +699,10 @@ export function DashboardPage() {
                 <p className="text-xs text-gray-500">Comprehensive breakdown of sales revenue, orders & category performance.</p>
               </div>
 
-              <button className="flex items-center gap-1.5 rounded-md bg-[#f47b20] px-4 py-2 text-xs font-bold text-white hover:bg-[#d9630f] transition">
+              <button
+                onClick={() => restroHandler.analytics.downloadCsv()}
+                className="flex items-center gap-1.5 rounded-md bg-[#f47b20] px-4 py-2 text-xs font-bold text-white hover:bg-[#d9630f] transition active:scale-95"
+              >
                 <Download size={14} /> Export Report (CSV)
               </button>
             </div>

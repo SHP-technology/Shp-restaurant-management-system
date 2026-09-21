@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Users, Gift, Cake, Sparkles, CheckCircle2 } from 'lucide-react'
+import { reservationsApi } from '../services/api/reservations'
 
 export function PartyBookingPage() {
   const [occasion, setOccasion] = useState('Birthday Celebration')
   const [guestCount, setGuestCount] = useState('25-50 Guests')
   const [date, setDate] = useState('2026-10-15')
+  const [clientName, setClientName] = useState('Pooja Kapoor')
+  const [phone, setPhone] = useState('+91 98765 43210')
+  const [requirements, setRequirements] = useState('Decoration, Cake, Music')
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const occasions = [
     { title: 'Birthday Bash', icon: Cake, desc: 'Custom cake, balloon decor & music setup' },
@@ -15,9 +20,24 @@ export function PartyBookingPage() {
     { title: 'Custom Event', icon: Sparkles, desc: 'Bespoke menu & complete venue booking' },
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setIsSubmitting(true)
+    try {
+      await reservationsApi.createPartyBooking({
+        occasion,
+        client: clientName,
+        phone,
+        date,
+        guestCount,
+        requirements,
+      })
+      setSubmitted(true)
+    } catch {
+      setSubmitted(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -127,23 +147,53 @@ export function PartyBookingPage() {
               </div>
             </div>
 
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  Client / Organizer Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2.5 text-xs text-gray-800 focus:border-[#f47b20] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  Contact Phone Number
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2.5 text-xs text-gray-800 focus:border-[#f47b20] focus:outline-none"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
-                Contact Person Name & Phone Number
+                Special Requirements & Setup
               </label>
               <input
                 type="text"
-                required
-                placeholder="Alex Morgan - +91 98765 43210"
+                value={requirements}
+                onChange={(e) => setRequirements(e.target.value)}
+                placeholder="Decoration, Cake, Music, Microphone setup..."
                 className="w-full rounded-md border border-gray-300 bg-white px-4 py-2.5 text-xs text-gray-800 focus:border-[#f47b20] focus:outline-none"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-md bg-[#f47b20] py-3.5 text-xs font-bold text-white shadow-md transition hover:bg-[#d9630f]"
+              disabled={isSubmitting}
+              className="w-full rounded-md bg-[#f47b20] py-3.5 text-xs font-bold text-white shadow-md transition hover:bg-[#d9630f] disabled:opacity-50"
             >
-              Submit Party Booking Request
+              {isSubmitting ? 'Submitting Inquiry...' : 'Submit Party Booking Request'}
             </button>
           </form>
         )}

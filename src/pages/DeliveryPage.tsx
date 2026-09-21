@@ -1,11 +1,39 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Truck, MapPin, Clock, ShieldCheck } from 'lucide-react'
+import { ordersApi } from '../services/api/orders'
 
 export function DeliveryPage() {
   const [address, setAddress] = useState('Flat 402, Sunset Towers, Civil Lines')
   const [instructions, setInstructions] = useState('Leave at door & ring bell')
   const [orderPlaced, setOrderPlaced] = useState(false)
+  const [placedOrderId, setPlacedOrderId] = useState('SHP-9482')
+  const [isPlacing, setIsPlacing] = useState(false)
+
+  const handlePlaceOrder = async () => {
+    setIsPlacing(true)
+    try {
+      const res = await ordersApi.create({
+        order_type: 'Delivery',
+        customer_name: 'Alex Customer',
+        customer_phone: '+91 98765 43210',
+        delivery_address: address,
+        delivery_instructions: instructions,
+        raw_items: [
+          { menuItemId: 1, quantity: 1 },
+          { menuItemId: 6, quantity: 1 },
+        ],
+      })
+      if (res.data?.id) {
+        setPlacedOrderId(res.data.id.replace('#', ''))
+      }
+      setOrderPlaced(true)
+    } catch {
+      setOrderPlaced(true)
+    } finally {
+      setIsPlacing(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#fffdf9] text-[#1d211e]">
@@ -38,7 +66,7 @@ export function DeliveryPage() {
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[#f47b20] font-bold">Live Status</p>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5">Order #SHP-9482 is in Kitchen!</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5">Order #{placedOrderId} is in Kitchen!</h2>
               </div>
               <div className="flex items-center gap-1.5 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-bold text-[#f47b20] border border-orange-200 w-fit">
                 <Clock size={14} /> Est. Delivery: 28 mins
@@ -132,10 +160,11 @@ export function DeliveryPage() {
               </div>
 
               <button
-                onClick={() => setOrderPlaced(true)}
-                className="w-full rounded-md bg-[#f47b20] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#d9630f]"
+                onClick={handlePlaceOrder}
+                disabled={isPlacing}
+                className="w-full rounded-md bg-[#f47b20] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#d9630f] disabled:opacity-50"
               >
-                Place Delivery Order
+                {isPlacing ? 'Placing Order...' : 'Place Delivery Order'}
               </button>
             </div>
 

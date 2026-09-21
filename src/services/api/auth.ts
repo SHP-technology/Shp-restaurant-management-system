@@ -5,6 +5,10 @@ export const authApi = {
     const response = await api.post('/auth/login', { email, password })
     return response.data
   },
+  signup: async (payload: { name: string; email: string; password: string }) => {
+    const response = await api.post('/auth/signup', payload)
+    return response.data
+  },
   logout: async () => {
     const response = await api.post('/auth/logout')
     return response.data

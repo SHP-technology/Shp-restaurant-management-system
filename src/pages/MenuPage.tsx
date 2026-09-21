@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Search, Plus, Check, Star, ArrowLeft, Filter } from 'lucide-react'
+import { menuApi } from '../services/api/menu'
 
 interface MenuItem {
   id: number
@@ -104,8 +105,19 @@ export function MenuPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [vegOnlyFilter, setVegOnlyFilter] = useState(false)
   const [cart, setCart] = useState<{ [key: number]: number }>({})
+  const [items, setItems] = useState<MenuItem[]>(menuItems)
 
-  const filteredItems = menuItems.filter((item) => {
+  useEffect(() => {
+    menuApi.list()
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setItems(res.data)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const filteredItems = items.filter((item) => {
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -119,8 +131,8 @@ export function MenuPage() {
 
   const totalCartCount = Object.values(cart).reduce((a, b) => a + b, 0)
   const totalCartPrice = Object.entries(cart).reduce((sum, [id, count]) => {
-    const item = menuItems.find((m) => m.id === Number(id))
-    return sum + (item ? item.price * count : 0)
+    const item = items.find((m) => m.id === Number(id))
+    return sum + (item ? Number(item.price) * count : 0)
   }, 0)
 
   return (

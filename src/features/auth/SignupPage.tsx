@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuthStore } from '../../store/authStore'
+import { restroHandler } from '../../services/api'
 import { AuthLayout } from './AuthLayout'
 
 const schema = z
@@ -22,18 +24,34 @@ type SignupFormValues = z.infer<typeof schema>
 export function SignupPage() {
   const setSession = useAuthStore((state) => state.setSession)
   const navigate = useNavigate()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   })
 
-  const onSubmit = (values: SignupFormValues) => {
-    setSession({
-      user: { id: 'demo-user', name: values.name, email: values.email, role: 'admin' },
-      accessToken: 'demo-access-token',
-      refreshToken: 'demo-refresh-token',
-    })
-    navigate('/admin')
+  const onSubmit = async (values: SignupFormValues) => {
+    setIsLoading(true)
+    setErrorMessage(null)
+    try {
+      const data = await restroHandler.auth.signup({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      })
+      setSession({
+        user: data.user,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      })
+      navigate('/admin')
+    } catch (err) {
+      setErrorMessage(restroHandler.getErrorMessage(err))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -43,6 +61,11 @@ export function SignupPage() {
       description="Create your restaurant workspace and bring your team together."
     >
       <form className="auth-form" onSubmit={form.handleSubmit(onSubmit)}>
+        {errorMessage && (
+          <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-medium">
+            {errorMessage}
+          </div>
+        )}
         <Field label="Full name" error={form.formState.errors.name?.message}>
           <input className="auth-input" placeholder="Alex Morgan" {...form.register('name')} />
         </Field>
@@ -56,8 +79,12 @@ export function SignupPage() {
           <input type="password" className="auth-input" placeholder="Repeat your password" {...form.register('confirmPassword')} />
         </Field>
 
-        <button type="submit" className="auth-submit">
-          Create workspace
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="auth-submit disabled:opacity-50"
+        >
+          {isLoading ? 'Creating Workspace...' : 'Create workspace'}
         </button>
       </form>
 
