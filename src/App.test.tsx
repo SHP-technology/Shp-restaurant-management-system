@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react'
 import App from './App'
 
 describe('App', () => {
-  it('renders the login screen when unauthenticated', () => {
+  it('renders the login screen when unauthenticated', async () => {
     window.history.pushState({}, '', '/login')
     render(<App />)
-    expect(screen.getByText(/Welcome back/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Welcome back/i)).toBeInTheDocument()
   })
 })
