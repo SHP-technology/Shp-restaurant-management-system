@@ -5,6 +5,7 @@
 #   make help          Show all available commands
 #   make setup         Complete setup: installs dependencies, migrates & seeds DB
 #   make dev           Runs both Frontend & Backend concurrently
+#   make redis         Start Redis server (Docker or native)
 # ==============================================================================
 
 SHELL := /bin/bash
@@ -13,8 +14,9 @@ PIP := backend/venv/bin/pip
 DAPHNE := backend/venv/bin/daphne
 MANAGE := $(PYTHON) backend/manage.py
 NPM := npm
+REDIS_CONTAINER := restro-redis
 
-.PHONY: help setup install install-frontend install-backend dev dev-frontend dev-backend dev-asgi build build-frontend collectstatic preview makemigrations migrate seed superuser shell reset-db test test-frontend test-backend lint clean
+.PHONY: help setup install install-frontend install-backend dev dev-frontend dev-backend dev-asgi redis redis-stop redis-status redis-cli build build-frontend collectstatic preview makemigrations migrate seed superuser shell reset-db test test-frontend test-backend lint clean
 
 # Default target
 .DEFAULT_GOAL := help
@@ -42,6 +44,11 @@ help:
 	@echo -e "  $(COLOR_GREEN)make dev-frontend$(COLOR_RESET)      Start Vite dev server (http://localhost:5173)"
 	@echo -e "  $(COLOR_GREEN)make dev-backend$(COLOR_RESET)       Start Django HTTP dev server (http://localhost:8000)"
 	@echo -e "  $(COLOR_GREEN)make dev-asgi$(COLOR_RESET)          Start Daphne ASGI server (WebSockets enabled on :8000)\n"
+	@echo -e "$(COLOR_YELLOW)⚡ Redis & WebSockets Layer:$(COLOR_RESET)"
+	@echo -e "  $(COLOR_GREEN)make redis$(COLOR_RESET)             Start Redis service (via Docker or local daemon)"
+	@echo -e "  $(COLOR_GREEN)make redis-stop$(COLOR_RESET)        Stop Redis service"
+	@echo -e "  $(COLOR_GREEN)make redis-status$(COLOR_RESET)      Check Redis connection status"
+	@echo -e "  $(COLOR_GREEN)make redis-cli$(COLOR_RESET)         Open Redis CLI interactive console\n"
 	@echo -e "$(COLOR_YELLOW)📦 Build & Production:$(COLOR_RESET)"
 	@echo -e "  $(COLOR_GREEN)make build$(COLOR_RESET)             Build frontend production bundle"
 	@echo -e "  $(COLOR_GREEN)make preview$(COLOR_RESET)           Preview production frontend build"
@@ -96,6 +103,59 @@ dev-backend:
 
 dev-asgi:
 	PYTHONPATH=backend $(DAPHNE) -b 0.0.0.0 -p 8000 config.asgi:application
+
+## ----------------------------------------------------------------------
+## ⚡ REDIS MANAGEMENT
+## ----------------------------------------------------------------------
+redis:
+	@echo -e "$(COLOR_CYAN)Starting Redis server...$(COLOR_RESET)"
+	@if command -v redis-server >/dev/null 2>&1; then \
+		echo -e "$(COLOR_GREEN)Starting local redis-server...$(COLOR_RESET)"; \
+		redis-server --daemonize yes; \
+	elif command -v docker >/dev/null 2>&1; then \
+		if docker ps -a --format '{{.Names}}' | grep -q "^$(REDIS_CONTAINER)$$"; then \
+			echo -e "$(COLOR_GREEN)Starting existing Docker Redis container ($(REDIS_CONTAINER))...$(COLOR_RESET)"; \
+			docker start $(REDIS_CONTAINER); \
+		else \
+			echo -e "$(COLOR_GREEN)Creating & launching Docker Redis container on port 6379...$(COLOR_RESET)"; \
+			docker run -d --name $(REDIS_CONTAINER) -p 6379:6379 redis:alpine; \
+		fi; \
+	else \
+		echo -e "$(COLOR_YELLOW)Neither redis-server nor Docker is available. Please install Redis or Docker.$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo -e "$(COLOR_GREEN)✓ Redis is ready on localhost:6379$(COLOR_RESET)"
+
+redis-stop:
+	@echo -e "$(COLOR_YELLOW)Stopping Redis server...$(COLOR_RESET)"
+	@if command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' | grep -q "^$(REDIS_CONTAINER)$$"; then \
+		docker stop $(REDIS_CONTAINER); \
+		echo -e "$(COLOR_GREEN)✓ Docker Redis container stopped.$(COLOR_RESET)"; \
+	elif command -v redis-cli >/dev/null 2>&1; then \
+		redis-cli shutdown 2>/dev/null || true; \
+		echo -e "$(COLOR_GREEN)✓ Local redis-server stopped.$(COLOR_RESET)"; \
+	else \
+		echo -e "$(COLOR_YELLOW)No active Redis instance found to stop.$(COLOR_RESET)"; \
+	fi
+
+redis-status:
+	@echo -e "$(COLOR_CYAN)Checking Redis connectivity...$(COLOR_RESET)"
+	@if command -v redis-cli >/dev/null 2>&1; then \
+		redis-cli ping || echo -e "$(COLOR_YELLOW)Redis is not responding on 6379.$(COLOR_RESET)"; \
+	elif command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' | grep -q "^$(REDIS_CONTAINER)$$"; then \
+		docker exec $(REDIS_CONTAINER) redis-cli ping; \
+	else \
+		echo -e "$(COLOR_YELLOW)Redis is not running.$(COLOR_RESET)"; \
+	fi
+
+redis-cli:
+	@if command -v redis-cli >/dev/null 2>&1; then \
+		redis-cli; \
+	elif command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' | grep -q "^$(REDIS_CONTAINER)$$"; then \
+		docker exec -it $(REDIS_CONTAINER) redis-cli; \
+	else \
+		echo -e "$(COLOR_YELLOW)Redis CLI not found. Start Redis with 'make redis' first.$(COLOR_RESET)"; \
+	fi
 
 ## ----------------------------------------------------------------------
 ## 📦 BUILD
