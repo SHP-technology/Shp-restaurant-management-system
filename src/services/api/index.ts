@@ -1,6 +1,6 @@
 import api, { getApiErrorMessage } from './client'
 import { websocketClient } from '../websocket/client'
-import { useAuthStore } from '../../store/authStore'
+import { useAuthStore } from '../../stores/auth'
 import type { Role, UserSession } from '../../types'
 
 export interface MenuItemData {
@@ -111,11 +111,14 @@ class RestroHandler {
       return response.data
     },
     logout: async () => {
+      const authStore = useAuthStore()
       try {
-        const refreshToken = useAuthStore.getState().refreshToken
-        await api.post('/auth/logout', { refreshToken })
+        const refreshToken = authStore.refreshToken
+        if (refreshToken) {
+          await api.post('/auth/logout', { refreshToken })
+        }
       } finally {
-        useAuthStore.getState().clearSession()
+        authStore.clearSession()
       }
     },
     me: async (): Promise<UserSession> => {
