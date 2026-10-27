@@ -1,6 +1,6 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from .models import Order, OrderItem, OrderStatus, OrderType
+from django.utils.html import format_html, mark_safe
+from .models import Order, OrderItem, OrderStatus, OrderType, PaymentStatus
 
 
 class OrderItemInline(admin.TabularInline):
@@ -26,14 +26,15 @@ class OrderAdmin(admin.ModelAdmin):
         'order_type_badge',
         'location_info',
         'status_badge',
+        'payment_badge',
         'items_count_badge',
         'total_amount_display',
         'created_at_display',
     )
     list_display_links = ('order_id_badge', 'customer_display_info')
-    list_filter = ('order_type', 'status', 'created_at', 'restaurant')
+    list_filter = ('order_type', 'status', 'payment_status', 'created_at', 'restaurant')
     date_hierarchy = 'created_at'
-    search_fields = ('id', 'customer_name', 'customer_phone', 'table_name', 'delivery_address', 'driver')
+    search_fields = ('id', 'customer_name', 'customer_phone', 'table_name', 'delivery_address', 'driver', 'razorpay_payment_id')
     readonly_fields = ('id', 'created_at', 'updated_at', 'order_summary_card')
     inlines = [OrderItemInline]
     save_on_top = True
@@ -45,6 +46,10 @@ class OrderAdmin(admin.ModelAdmin):
         }),
         ('Customer & Table Assignment', {
             'fields': ('customer_name', 'customer_phone', 'table', 'table_name'),
+            'classes': ('extrapretty',),
+        }),
+        ('Payment Gateway (Razorpay)', {
+            'fields': ('payment_status', 'payment_method', 'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature'),
             'classes': ('extrapretty',),
         }),
         ('Delivery & Dispatch Details', {
@@ -62,6 +67,7 @@ class OrderAdmin(admin.ModelAdmin):
     )
 
     actions = [
+        'mark_paid',
         'mark_preparing',
         'mark_ready',
         'mark_out_for_delivery',
@@ -86,14 +92,14 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description='Customer')
     def customer_display_info(self, obj):
-        phone_html = f'<div class="text-muted" style="font-size: 11px;"><i class="fas fa-phone-alt me-1"></i> {obj.customer_phone}</div>' if obj.customer_phone else ''
+        phone_html = format_html('<div class="text-muted" style="font-size: 11px;"><i class="fas fa-phone-alt me-1"></i> {}</div>', obj.customer_phone) if obj.customer_phone else ''
         return format_html(
             '<div>'
             '<div style="font-weight: 600; color: #1e293b;">{}</div>'
             '{}'
             '</div>',
             obj.customer_name,
-            format_html(phone_html)
+            phone_html
         )
 
     @admin.display(description='Type', ordering='order_type')
@@ -118,7 +124,7 @@ class OrderAdmin(admin.ModelAdmin):
         elif obj.order_type == OrderType.DELIVERY:
             addr = obj.delivery_address[:30] + '...' if len(obj.delivery_address) > 30 else (obj.delivery_address or 'Pending address')
             return format_html('<span style="font-size: 12px; color: #64748b;" title="{}"><i class="fas fa-map-marker-alt text-danger me-1"></i> {}</span>', obj.delivery_address, addr)
-        return format_html('<span style="color: #64748b;"><i class="fas fa-store me-1"></i> Pickup Counter</span>')
+        return mark_safe('<span style="color: #64748b;"><i class="fas fa-store me-1"></i> Pickup Counter</span>')
 
     @admin.display(description='Status', ordering='status')
     def status_badge(self, obj):
@@ -136,6 +142,21 @@ class OrderAdmin(admin.ModelAdmin):
             '<span style="background-color: {}; color: {}; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">'
             '<i class="{}"></i> {}</span>',
             bg, fg, icon, obj.status
+        )
+
+    @admin.display(description='Payment', ordering='payment_status')
+    def payment_badge(self, obj):
+        configs = {
+            PaymentStatus.PAID: ('#dcfce7', '#15803d', 'fas fa-check-circle', 'Paid (Razorpay)'),
+            PaymentStatus.PENDING: ('#fef3c7', '#b45309', 'fas fa-clock', 'Pending / COD'),
+            PaymentStatus.FAILED: ('#fee2e2', '#b91c1c', 'fas fa-times-circle', 'Failed'),
+            PaymentStatus.REFUNDED: ('#e0e7ff', '#4338ca', 'fas fa-undo', 'Refunded'),
+        }
+        bg, fg, icon, label = configs.get(obj.payment_status, ('#f3f4f6', '#374151', 'fas fa-circle', obj.payment_status))
+        return format_html(
+            '<span style="background-color: {}; color: {}; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">'
+            '<i class="{}"></i> {}</span>',
+            bg, fg, icon, label
         )
 
     @admin.display(description='Items')
@@ -172,15 +193,21 @@ class OrderAdmin(admin.ModelAdmin):
         ])
         return format_html(
             '<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; max-width: 500px;">'
-            '<div style="font-weight: 700; margin-bottom: 8px; color: #1e293b;">Order Items & Totals:</div>'
+            '<div style="font-weight: 700; margin-bottom: 8px; color: #1e293b;">Order Items & Payment:</div>'
             '<ul style="padding-left: 20px; margin-bottom: 8px; color: #334155; font-size: 13px;">{}</ul>'
-            '<div style="border-top: 1px dashed #cbd5e1; padding-top: 6px; font-weight: 700; color: #0f172a; font-size: 14px;">Total: ₹{}</div>'
+            '<div style="border-top: 1px dashed #cbd5e1; padding-top: 6px; font-weight: 700; color: #0f172a; font-size: 14px;">Total: ₹{} ({})</div>'
             '</div>',
-            format_html(items_html) if items_html else "<li>No items attached</li>",
-            obj.total_amount
+            format_html(items_html) if items_html else mark_safe("<li>No items attached</li>"),
+            obj.total_amount,
+            obj.payment_status
         )
 
-    # Bulk workflow actions
+    # Actions
+    @admin.action(description='Mark selected orders as Paid (Razorpay)')
+    def mark_paid(self, request, queryset):
+        count = queryset.update(payment_status=PaymentStatus.PAID, payment_method='Razorpay Online')
+        self.message_user(request, f"{count} order(s) marked as Paid.")
+
     @admin.action(description='Mark as Preparing (Kitchen In-Progress)')
     def mark_preparing(self, request, queryset):
         count = queryset.update(status=OrderStatus.PREPARING)

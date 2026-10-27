@@ -67,13 +67,25 @@ export const router = createRouter({
   },
 })
 
+const STAFF_ROLES = ['admin', 'manager', 'waiter', 'kitchen']
+
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
-  if (to.meta.requiresAuth && !authStore.accessToken) {
-    next({ name: 'Login' })
-  } else {
+  if (!to.meta.requiresAuth) {
     next()
+    return
   }
+  if (!authStore.accessToken) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+    return
+  }
+  // Admin/POS area is staff-only; a plain customer account must not reach it.
+  const role = authStore.user?.role
+  if (role && !STAFF_ROLES.includes(role)) {
+    next({ name: 'Home' })
+    return
+  }
+  next()
 })
 
 export default router

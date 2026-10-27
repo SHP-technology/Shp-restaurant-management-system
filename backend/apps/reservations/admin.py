@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import TableReservation, PartyBooking
 
 
@@ -91,7 +92,7 @@ class TableReservationAdmin(admin.ModelAdmin):
                 '<span style="font-weight: 600; color: #1e293b;"><i class="fas fa-chair text-success me-1"></i> Table #{}</span>',
                 obj.assigned_table.table_number
             )
-        return format_html('<span style="color: #94a3b8; font-style: italic;">Auto / Unassigned</span>')
+        return mark_safe('<span style="color: #94a3b8; font-style: italic;">Auto / Unassigned</span>')
 
     @admin.display(description='Status', ordering='status')
     def status_badge(self, obj):
@@ -181,13 +182,13 @@ class PartyBookingAdmin(admin.ModelAdmin):
 
     @admin.display(description='Client')
     def client_info(self, obj):
-        phone_html = f'<div style="font-size: 11px; color: #64748b;"><i class="fas fa-phone-alt me-1"></i> {obj.phone}</div>' if obj.phone else ''
+        phone_html = format_html('<div style="font-size: 11px; color: #64748b;"><i class="fas fa-phone-alt me-1"></i> {}</div>', obj.phone) if obj.phone else ''
         return format_html(
             '<div>'
             '<div style="font-weight: 600; color: #0f172a;">{}</div>'
             '{}'
             '</div>',
-            obj.client, format_html(phone_html)
+            obj.client, phone_html
         )
 
     @admin.display(description='Event Date')
@@ -208,8 +209,8 @@ class PartyBookingAdmin(admin.ModelAdmin):
 
     @admin.display(description='Requirements')
     def requirements_display(self, obj):
-        summary = obj.requirements[:40] + '...' if len(obj.requirements) > 40 else obj.requirements
-        return format_html('<span style="color: #475569; font-size: 12px;" title="{}">{}</span>', obj.requirements, summary or 'None')
+        summary = (obj.requirements[:40] + '...') if (obj.requirements and len(obj.requirements) > 40) else (obj.requirements or 'None')
+        return format_html('<span style="color: #475569; font-size: 12px;" title="{}">{}</span>', obj.requirements or '', summary)
 
     @admin.display(description='Status', ordering='status')
     def status_badge(self, obj):

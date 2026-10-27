@@ -11,13 +11,13 @@ django_asgi_app = get_asgi_application()
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from channels.auth import AuthMiddlewareStack
+from apps.notifications.middleware import JWTAuthMiddleware
 import apps.notifications.routing
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
+        JWTAuthMiddleware(
             URLRouter(
                 apps.notifications.routing.websocket_urlpatterns
             )

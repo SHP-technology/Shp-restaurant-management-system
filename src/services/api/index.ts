@@ -6,13 +6,16 @@ import type { Role, UserSession } from '../../types'
 export interface MenuItemData {
   id: number
   name: string
-  price: number
+  price: number | string
   category: string
   description: string
-  rating: number
-  prepTime: string
-  isVeg: boolean
+  rating?: number | string
+  prepTime?: string
+  prep_time?: string
+  isVeg?: boolean
+  is_veg?: boolean
   isSpecial?: boolean
+  is_special?: boolean
   image: string
   status?: string
 }
@@ -90,6 +93,8 @@ export interface OfferData {
   tag: string
   badge_color?: string
   is_active?: boolean
+  category?: string
+  validity?: string
 }
 
 export interface RestaurantData {
@@ -225,6 +230,11 @@ class RestroHandler {
       delivery_address?: string
       delivery_instructions?: string
       raw_items?: Array<{ menuItemId: number; quantity: number }>
+      payment_method?: string
+      payment_status?: string
+      razorpay_order_id?: string
+      razorpay_payment_id?: string
+      razorpay_signature?: string
     }) => {
       const response = await api.post<OrderData>('/orders', payload)
       return response.data
@@ -234,6 +244,33 @@ class RestroHandler {
         `/orders/${encodeURIComponent(orderId)}/status`,
         { status }
       )
+      return response.data
+    },
+    createRazorpayOrder: async (payload: {
+      amount: number
+      order_id?: string
+      customer_name?: string
+      customer_phone?: string
+    }) => {
+      const response = await api.post<{
+        razorpay_order_id: string
+        amount: number
+        currency: string
+        key_id: string
+      }>('/orders/create-razorpay-order', payload)
+      return response.data
+    },
+    verifyRazorpayPayment: async (payload: {
+      order_id: string
+      razorpay_order_id?: string
+      razorpay_payment_id: string
+      razorpay_signature?: string
+    }) => {
+      const response = await api.post<{
+        status: string
+        message: string
+        order: OrderData
+      }>('/orders/verify-razorpay-payment', payload)
       return response.data
     },
   }
@@ -312,7 +349,9 @@ class RestroHandler {
       const wsHost = import.meta.env.VITE_WS_BASE_URL || (
         window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host
       )
-      const url = `${wsProtocol}//${wsHost}/ws/restaurant/${restaurantId}/`
+      const token = localStorage.getItem('accessToken')
+      const query = token ? `?token=${encodeURIComponent(token)}` : ''
+      const url = `${wsProtocol}//${wsHost}/ws/restaurant/${restaurantId}/${query}`
       websocketClient.connect(url)
     },
     on: (event: string, callback: (payload: unknown) => void) => {

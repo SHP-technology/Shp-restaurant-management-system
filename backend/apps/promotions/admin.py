@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Offer
 
 
@@ -69,11 +70,11 @@ class OfferAdmin(admin.ModelAdmin):
     @admin.display(description='Status', ordering='is_active')
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-check-circle me-1"></i> Active</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="background-color: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
             '<i class="fas fa-times-circle me-1"></i> Expired</span>'
         )

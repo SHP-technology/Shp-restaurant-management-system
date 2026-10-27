@@ -44,22 +44,19 @@ class SignupSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    email = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = attrs.get('email', '').lower()
+        login_id = attrs.get('email', '').strip()
         password = attrs.get('password')
 
-        user = authenticate(username=email, password=password)
+        user = authenticate(username=login_id, password=password)
         if not user:
-            # Check if user exists by email if username differs
-            try:
-                user_obj = User.objects.get(email__iexact=email)
-                if user_obj.check_password(password):
-                    user = user_obj
-            except User.DoesNotExist:
-                pass
+            # Check by email or username
+            user_obj = User.objects.filter(email__iexact=login_id).first() or User.objects.filter(username__iexact=login_id).first()
+            if user_obj and user_obj.check_password(password):
+                user = user_obj
 
         if not user:
             raise serializers.ValidationError({"detail": "Invalid email or password credentials."})

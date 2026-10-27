@@ -23,6 +23,19 @@ class OrderStatus(models.TextChoices):
     CANCELLED = 'Cancelled', 'Cancelled'
 
 
+class PaymentStatus(models.TextChoices):
+    PENDING = 'Pending', 'Pending'
+    PAID = 'Paid', 'Paid'
+    FAILED = 'Failed', 'Failed'
+    REFUNDED = 'Refunded', 'Refunded'
+
+
+class PaymentMethod(models.TextChoices):
+    RAZORPAY = 'Razorpay', 'Razorpay Online (UPI / Cards / Netbanking)'
+    CASH = 'Cash', 'Cash on Delivery'
+    CARD = 'Card', 'Card at Counter'
+
+
 class Order(models.Model):
     id = models.CharField(primary_key=True, max_length=50, default='')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=True, blank=True, related_name='orders')
@@ -34,11 +47,19 @@ class Order(models.Model):
     order_type = models.CharField(max_length=30, choices=OrderType.choices, default=OrderType.DINE_IN)
     status = models.CharField(max_length=30, choices=OrderStatus.choices, default=OrderStatus.NEW)
 
+    # Financials
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
+    # Payment Gateway (Razorpay)
+    payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    payment_method = models.CharField(max_length=50, default='Razorpay')
+    razorpay_order_id = models.CharField(max_length=100, blank=True, default='')
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, default='')
+    razorpay_signature = models.CharField(max_length=255, blank=True, default='')
 
     # Delivery logistics
     delivery_address = models.TextField(blank=True, default='')
@@ -55,8 +76,14 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             prefix = '#DEL-' if self.order_type == OrderType.DELIVERY else '#'
-            num = random.randint(1000, 9999)
-            self.id = f"{prefix}{num}"
+            # Retry to avoid primary-key collisions under concurrent creates.
+            for _ in range(20):
+                candidate = f"{prefix}{random.randint(100000, 999999)}"
+                if not Order.objects.filter(pk=candidate).exists():
+                    self.id = candidate
+                    break
+            else:
+                self.id = f"{prefix}{uuid.uuid4().hex[:10].upper()}"
         if not self.table_name and self.table:
             self.table_name = f"Table {self.table.table_number}"
         super().save(*args, **kwargs)
@@ -83,7 +110,7 @@ class Order(models.Model):
         return self.customer_name
 
     def __str__(self):
-        return f"{self.id} - {self.order_type} ({self.status})"
+        return f"{self.id} - {self.order_type} ({self.status} - Payment: {self.payment_status})"
 
 
 class OrderItem(models.Model):

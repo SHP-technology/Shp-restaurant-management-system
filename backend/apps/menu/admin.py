@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Category, MenuItem
 
 
@@ -29,7 +30,7 @@ class CategoryAdmin(admin.ModelAdmin):
                 '<img src="{}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" />',
                 obj.image
             )
-        return format_html(
+        return mark_safe(
             '<div style="width: 40px; height: 40px; background-color: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;"><i class="fas fa-layer-group"></i></div>'
         )
 
@@ -45,11 +46,11 @@ class CategoryAdmin(admin.ModelAdmin):
     @admin.display(description='Status')
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-check-circle me-1"></i> Active</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="background-color: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
             '<i class="fas fa-times-circle me-1"></i> Inactive</span>'
         )
@@ -120,7 +121,7 @@ class MenuItemAdmin(admin.ModelAdmin):
                 '<img src="{}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.06);" />',
                 obj.image
             )
-        return format_html(
+        return mark_safe(
             '<div style="width: 44px; height: 44px; background-color: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;"><i class="fas fa-utensils"></i></div>'
         )
 
@@ -131,7 +132,7 @@ class MenuItemAdmin(admin.ModelAdmin):
                 '<div style="margin-top: 6px;"><img src="{}" style="max-height: 200px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" /></div>',
                 obj.image
             )
-        return format_html('<span style="color: #94a3b8;">No dish image provided</span>')
+        return mark_safe('<span style="color: #94a3b8;">No dish image provided</span>')
 
     @admin.display(description='Category', ordering='category__name')
     def category_badge(self, obj):
@@ -148,11 +149,11 @@ class MenuItemAdmin(admin.ModelAdmin):
     @admin.display(description='Food Type', ordering='is_veg')
     def dietary_badge(self, obj):
         if obj.is_veg:
-            return format_html(
+            return mark_safe(
                 '<span style="display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid #16a34a; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; color: #16a34a; background-color: #f0fdf4;">'
                 '<span style="display: inline-block; width: 7px; height: 7px; background-color: #16a34a; border-radius: 50%;"></span> VEG</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid #dc2626; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; color: #dc2626; background-color: #fef2f2;">'
             '<span style="display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 7px solid #dc2626;"></span> NON-VEG</span>'
         )
@@ -160,11 +161,11 @@ class MenuItemAdmin(admin.ModelAdmin):
     @admin.display(description='Stock Status', ordering='is_in_stock')
     def stock_badge(self, obj):
         if obj.is_in_stock:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-check-circle me-1"></i> In Stock</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="background-color: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
             '<i class="fas fa-ban me-1"></i> Out of Stock</span>'
         )
@@ -187,11 +188,11 @@ class MenuItemAdmin(admin.ModelAdmin):
     @admin.display(description="Chef's Special", ordering='is_special')
     def is_special_badge(self, obj):
         if obj.is_special:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 2px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-award me-1"></i> Special</span>'
             )
-        return format_html('<span style="color: #cbd5e1;">-</span>')
+        return mark_safe('<span style="color: #cbd5e1;">-</span>')
 
     # Bulk actions
     @admin.action(description='Mark selected dishes as In Stock')

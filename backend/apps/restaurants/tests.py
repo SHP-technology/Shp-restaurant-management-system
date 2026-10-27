@@ -7,7 +7,7 @@ from apps.authentication.models import User, Role
 from apps.restaurants.models import Restaurant
 from apps.menu.models import Category, MenuItem
 from apps.tables.models import RestaurantTable, TableStatus
-from apps.orders.models import Order, OrderType, OrderStatus
+from apps.orders.models import Order, OrderItem, OrderType, OrderStatus
 from apps.reservations.models import TableReservation, PartyBooking
 from apps.customers.models import Customer
 from apps.promotions.models import Offer
@@ -92,6 +92,19 @@ class ComprehensiveRestaurantAPITestCase(TestCase):
             tag="HOT DEAL",
             is_active=True
         )
+
+        # The API is secure-by-default; authenticate the client as staff so the
+        # management-endpoint tests exercise the real (authorized) code paths.
+        self._authenticate()
+
+    def _authenticate(self):
+        login_res = self.client.post('/api/auth/login', {
+            'email': 'admin@restaurant.com',
+            'password': 'adminpassword123'
+        })
+        token = login_res.data['accessToken']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        return token
 
     # 1. AUTH TESTS
     def test_01_auth_login_and_me(self):
@@ -281,3 +294,146 @@ class ComprehensiveRestaurantAPITestCase(TestCase):
         self.assertEqual(csv_res.status_code, status.HTTP_200_OK)
         self.assertEqual(csv_res['Content-Type'], 'text/csv')
         self.assertIn('Order ID', str(csv_res.content))
+
+    # 8b. SECURITY / AUTHORIZATION BOUNDARY TESTS
+    def test_16_anonymous_access_boundaries(self):
+        anon = APIClient()  # no credentials
+
+        # Public reads are allowed.
+        self.assertEqual(anon.get('/api/menu').status_code, status.HTTP_200_OK)
+        self.assertEqual(anon.get('/api/offers').status_code, status.HTTP_200_OK)
+        self.assertEqual(anon.get('/api/restaurants').status_code, status.HTTP_200_OK)
+
+        # Protected reads are rejected for anonymous callers.
+        self.assertEqual(anon.get('/api/customers').status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(anon.get('/api/orders').status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(anon.get('/api/tables').status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(anon.get('/api/reports/dashboard').status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(anon.get('/api/reports/export-csv').status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_17_anonymous_can_place_order_but_not_manage(self):
+        anon = APIClient()
+        create_res = anon.post('/api/orders', {
+            'order_type': 'Delivery',
+            'customer_name': 'Guest',
+            'raw_items': [{'menuItemId': self.pizza_item.id, 'quantity': 1}],
+        }, format='json')
+        self.assertEqual(create_res.status_code, status.HTTP_201_CREATED)
+        order_id = create_res.data['id']
+
+        # Anonymous callers cannot change order status.
+        encoded_id = urllib.parse.quote(order_id, safe='')
+        status_res = anon.patch(f'/api/orders/{encoded_id}/status', {'status': 'Completed'})
+        self.assertEqual(status_res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_18_payment_status_is_not_client_writable(self):
+        # A client must not be able to mark an order paid by writing the field directly.
+        order = Order.objects.create(
+            restaurant=self.restaurant,
+            customer_name="Fraud Attempt",
+            order_type=OrderType.DELIVERY,
+            total_amount=Decimal('500.00'),
+        )
+        encoded_id = urllib.parse.quote(order.id, safe='')
+        res = self.client.patch(
+            f'/api/orders/{encoded_id}',
+            {'payment_status': 'Paid', 'status': 'Completed'},
+            format='json',
+        )
+        # Request may succeed structurally, but the read-only fields must be ignored.
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, 'Pending')
+        self.assertNotEqual(order.status, 'Completed')
+
+    def test_19_payment_verification_requires_signature(self):
+        order = Order.objects.create(
+            restaurant=self.restaurant,
+            customer_name="Guest",
+            order_type=OrderType.DELIVERY,
+            total_amount=Decimal('500.00'),
+        )
+        anon = APIClient()
+        # Missing signature fields -> rejected, order stays unpaid.
+        res = anon.post('/api/orders/verify-razorpay-payment', {
+            'order_id': order.id,
+            'razorpay_payment_id': 'pay_fake',
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, 'Pending')
+
+    # 9. DJANGO ADMIN VIEWS VERIFICATION
+    def test_15_admin_changelist_views(self):
+        superuser = User.objects.create_superuser(
+            username="super@restaurant.com",
+            email="super@restaurant.com",
+            password="superpassword123",
+            name="Super Admin",
+            role=Role.ADMIN,
+            is_staff=True,
+            is_superuser=True
+        )
+        # Create full sample data for all models
+        order = Order.objects.create(
+            restaurant=self.restaurant,
+            customer_name="Test Customer",
+            customer_phone="+91 99999 88888",
+            order_type=OrderType.DINE_IN,
+            table=self.table_1,
+            table_name="Table 1",
+            status=OrderStatus.PREPARING,
+            total_amount=Decimal('518.00')
+        )
+        OrderItem.objects.create(
+            order=order,
+            menu_item=self.pizza_item,
+            quantity=1,
+            unit_price=Decimal('349.00')
+        )
+        TableReservation.objects.create(
+            name="Test Reservation",
+            phone="+91 98765 00000",
+            date="2026-09-22",
+            time="07:30 PM",
+            guests=4,
+            area="Indoor AC",
+            assigned_table=self.table_1,
+            status="Confirmed"
+        )
+        PartyBooking.objects.create(
+            occasion="Birthday Party",
+            client="Alice Wonderland",
+            phone="+91 98765 22222",
+            date="2026-10-15",
+            guests="25 Guests",
+            requirements="Cake & Balcony",
+            status="Confirmed"
+        )
+
+        self.client.force_login(superuser)
+        admin_urls = [
+            '/admin/',
+            '/admin/authentication/user/',
+            f'/admin/authentication/user/{superuser.pk}/change/',
+            '/admin/restaurants/restaurant/',
+            f'/admin/restaurants/restaurant/{self.restaurant.pk}/change/',
+            '/admin/menu/category/',
+            f'/admin/menu/category/{self.category_pizza.pk}/change/',
+            '/admin/menu/menuitem/',
+            f'/admin/menu/menuitem/{self.pizza_item.pk}/change/',
+            '/admin/tables/restauranttable/',
+            f'/admin/tables/restauranttable/{self.table_1.pk}/change/',
+            '/admin/orders/order/',
+            f'/admin/orders/order/{order.pk}/change/',
+            '/admin/orders/orderitem/',
+            '/admin/reservations/tablereservation/',
+            '/admin/reservations/partybooking/',
+            '/admin/customers/customer/',
+            f'/admin/customers/customer/{self.customer.pk}/change/',
+            '/admin/promotions/offer/',
+            f'/admin/promotions/offer/{self.offer.pk}/change/',
+        ]
+        for url in admin_urls:
+            with self.subTest(url=url):
+                res = self.client.get(url)
+                self.assertEqual(res.status_code, 200, f"Admin URL {url} failed with status {res.status_code}")

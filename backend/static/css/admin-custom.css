@@ -1,0 +1,307 @@
+/* ==========================================================================
+   SHP Restro Admin - Modern, Clean & High-Density UI Theme
+   ========================================================================== */
+
+:root {
+    --shp-primary: #f47b20;
+    --shp-primary-hover: #ea580c;
+    --shp-surface: #ffffff;
+    --shp-bg: #f8fafc;
+    --shp-border: #e2e8f0;
+    --shp-text-main: #0f172a;
+    --shp-text-muted: #64748b;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    color: var(--shp-text-main) !important;
+    background-color: var(--shp-bg) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   Brand & Navbar
+   ========================================================================== */
+.brand-link {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.brand-link .brand-image {
+    max-height: 32px !important;
+    width: auto !important;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.brand-link .brand-text {
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    font-size: 1rem !important;
+}
+
+.main-header {
+    border-bottom: 1px solid var(--shp-border) !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ==========================================================================
+   Sidebar Navigation
+   ========================================================================== */
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background-color: var(--shp-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(244, 123, 32, 0.3) !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+}
+
+.nav-sidebar .nav-link {
+    border-radius: 8px !important;
+    margin: 2px 0 !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500;
+}
+
+.nav-sidebar .nav-icon {
+    font-size: 0.95rem !important;
+    margin-right: 0.6rem !important;
+}
+
+/* ==========================================================================
+   Login Screen
+   ========================================================================== */
+.login-page {
+    background: radial-gradient(circle at 10% 20%, #f8fafc 0%, #f1f5f9 90%) !important;
+}
+
+.login-box {
+    width: 400px !important;
+}
+
+.login-logo {
+    margin-bottom: 1.25rem !important;
+}
+
+.login-logo img {
+    max-height: 60px !important;
+    width: auto !important;
+    border-radius: 12px;
+}
+
+.login-card-body {
+    border-radius: 16px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+    border: 1px solid var(--shp-border) !important;
+    padding: 2rem !important;
+}
+
+.login-box-msg {
+    color: var(--shp-text-muted) !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    padding-bottom: 1rem !important;
+}
+
+/* ==========================================================================
+   Cards & Layout Containers
+   ========================================================================== */
+.card {
+    border: 1px solid var(--shp-border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+    margin-bottom: 1.25rem;
+    background-color: #ffffff !important;
+}
+
+.card-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 0.75rem 1.25rem !important;
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+}
+
+.card-title {
+    font-size: 0.925rem !important;
+    font-weight: 600 !important;
+    color: var(--shp-text-main) !important;
+}
+
+/* ==========================================================================
+   Tables & Data Grid (Clean, High Density, Legible)
+   ========================================================================== */
+.table {
+    margin-bottom: 0 !important;
+}
+
+.table thead th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-size: 0.775rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid var(--shp-border) !important;
+    border-top: none !important;
+    padding: 8px 12px !important;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    vertical-align: middle !important;
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    color: #334155;
+    border-top: 1px solid #f1f5f9 !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Thumbnails in Tables */
+.table img {
+    border-radius: 6px !important;
+    object-fit: cover !important;
+}
+
+/* Badges Consistency */
+.badge-shp, span[style*="border-radius"] {
+    letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   Form Controls & Search
+   ========================================================================== */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="url"],
+select,
+textarea {
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 12px !important;
+    font-size: 0.875rem !important;
+    color: var(--shp-text-main) !important;
+    background-color: #ffffff !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--shp-primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(244, 123, 32, 0.15) !important;
+}
+
+#changelist-search input[type="text"] {
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    min-width: 260px;
+}
+
+#changelist-search input[type="submit"] {
+    border-radius: 8px !important;
+    padding: 6px 14px !important;
+    background-color: var(--shp-primary) !important;
+    border-color: var(--shp-primary) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-left: 6px;
+}
+
+#changelist-search input[type="submit"]:hover {
+    background-color: var(--shp-primary-hover) !important;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.btn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 6px 14px !important;
+    transition: all 0.15s ease;
+}
+
+.btn-primary {
+    background-color: var(--shp-primary) !important;
+    border-color: var(--shp-primary) !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--shp-primary-hover) !important;
+    border-color: var(--shp-primary-hover) !important;
+}
+
+/* ==========================================================================
+   Horizontal Tabs & Fieldsets
+   ========================================================================== */
+.nav-tabs {
+    border-bottom: 1px solid var(--shp-border) !important;
+}
+
+.nav-tabs .nav-link {
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    color: var(--shp-text-muted) !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 0.6rem 1rem !important;
+    border: 1px solid transparent !important;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--shp-primary) !important;
+    background-color: #ffffff !important;
+    border-color: var(--shp-border) var(--shp-border) #ffffff !important;
+}
+
+/* ==========================================================================
+   Pagination & Action Bar
+   ========================================================================== */
+.paginator {
+    font-size: 0.825rem !important;
+    color: var(--shp-text-muted) !important;
+    border-top: 1px solid var(--shp-border) !important;
+    padding: 10px 14px !important;
+    background-color: #f8fafc !important;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.paginator a {
+    color: var(--shp-primary) !important;
+    font-weight: 600;
+}
+
+.actions {
+    background-color: #f8fafc !important;
+    border: 1px solid var(--shp-border) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 12px !important;
+}
+
+.actions label {
+    font-size: 0.85rem !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+}
+
+.actions select {
+    padding: 4px 10px !important;
+    font-size: 0.85rem !important;
+}

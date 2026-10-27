@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from .models import User, Role
 
@@ -84,19 +85,19 @@ class UserAdmin(BaseUserAdmin):
                 '<span style="font-weight: 500; color: #1e293b;"><i class="fas fa-store text-muted me-1"></i> {}</span>',
                 obj.restaurant.outlet_name
             )
-        return format_html('<span style="color: #94a3b8; font-style: italic;">All Outlets / HQ</span>')
+        return mark_safe('<span style="color: #94a3b8; font-style: italic;">All Outlets / HQ</span>')
 
     @admin.display(description='Staff', boolean=False)
     def is_staff_badge(self, obj):
         if obj.is_staff:
-            return format_html('<span style="color: #16a34a; font-weight: 600;"><i class="fas fa-check-circle"></i> Yes</span>')
-        return format_html('<span style="color: #94a3b8;"><i class="fas fa-minus-circle"></i> No</span>')
+            return mark_safe('<span style="color: #16a34a; font-weight: 600;"><i class="fas fa-check-circle"></i> Yes</span>')
+        return mark_safe('<span style="color: #94a3b8;"><i class="fas fa-minus-circle"></i> No</span>')
 
     @admin.display(description='Status', boolean=False)
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html('<span style="background-color: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">Active</span>')
-        return format_html('<span style="background-color: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">Inactive</span>')
+            return mark_safe('<span style="background-color: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">Active</span>')
+        return mark_safe('<span style="background-color: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">Inactive</span>')
 
     @admin.display(description='Joined On', ordering='created_at')
     def created_at_display(self, obj):

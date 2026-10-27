@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Restaurant
 
 
@@ -50,7 +51,7 @@ class RestaurantAdmin(admin.ModelAdmin):
                 '<img src="{}" style="width: 52px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" />',
                 obj.hero_image
             )
-        return format_html(
+        return mark_safe(
             '<div style="width: 52px; height: 38px; background-color: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8;"><i class="fas fa-store"></i></div>'
         )
 
@@ -61,7 +62,7 @@ class RestaurantAdmin(admin.ModelAdmin):
                 '<div style="margin-top: 6px;"><img src="{}" style="max-height: 180px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" /></div>',
                 obj.hero_image
             )
-        return format_html('<span style="color: #94a3b8;">No hero image uploaded</span>')
+        return mark_safe('<span style="color: #94a3b8;">No hero image uploaded</span>')
 
     @admin.display(description='Contact')
     def contact_info(self, obj):
@@ -77,11 +78,11 @@ class RestaurantAdmin(admin.ModelAdmin):
     @admin.display(description='Auto Accept Orders')
     def auto_accept_badge(self, obj):
         if obj.auto_accept:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-bolt me-1"></i> Enabled</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="background-color: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
             '<i class="fas fa-pause-circle me-1"></i> Manual</span>'
         )
@@ -89,11 +90,11 @@ class RestaurantAdmin(admin.ModelAdmin):
     @admin.display(description='Status')
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html(
+            return mark_safe(
                 '<span style="background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
                 '<i class="fas fa-check-circle me-1"></i> Active</span>'
             )
-        return format_html(
+        return mark_safe(
             '<span style="background-color: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 9999px; font-weight: 600; font-size: 11px;">'
             '<i class="fas fa-times-circle me-1"></i> Inactive</span>'
         )

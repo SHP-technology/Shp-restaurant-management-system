@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Customer
 
 
@@ -63,7 +64,7 @@ class CustomerAdmin(admin.ModelAdmin):
                 '<i class="far fa-envelope me-1 text-muted"></i> {}</a>',
                 obj.email, obj.email
             )
-        return format_html('<span style="color: #cbd5e1;">-</span>')
+        return mark_safe('<span style="color: #cbd5e1;">-</span>')
 
     @admin.display(description='Segment / Tier', ordering='tag')
     def tag_badge(self, obj):
@@ -89,10 +90,10 @@ class CustomerAdmin(admin.ModelAdmin):
 
     @admin.display(description='Lifetime Spend', ordering='total_spent_amount')
     def total_spent_badge(self, obj):
+        amount_str = f"₹{float(obj.total_spent_amount):,.2f}"
         return format_html(
-            '<span style="font-weight: 800; color: #047857; font-size: 13px;">'
-            '₹{:,.2f}</span>',
-            float(obj.total_spent_amount)
+            '<span style="font-weight: 800; color: #047857; font-size: 13px;">{}</span>',
+            amount_str
         )
 
     @admin.display(description='Registered On', ordering='created_at')
